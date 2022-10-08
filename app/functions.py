@@ -4,14 +4,13 @@ import pandas as pd
 import shap
 import pickle
 
-colors = ['brown', 'teal', 'blue', 'coral', 'limegreen']
-
+colors = ["brown", "teal", "blue", "coral", "limegreen"]
 
 
 def find_categorical(data):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
+    if "y" in data.columns:
+        data_copy = data_copy.drop("y", axis=1)
     categorical = []
 
     for col in data_copy.columns:
@@ -34,8 +33,8 @@ def savePickle(obj, path):
 
 def getMinMax(data):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
+    if "y" in data.columns:
+        data_copy = data_copy.drop("y", axis=1)
     ar = np.array(data_copy)
     minMax = [np.amin(ar, axis=0), np.amax(ar, axis=0)]
     return minMax
@@ -76,16 +75,16 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
     plot.figure.set_size_inches(16, 8)
 
     if absolute:
-        title = 'Центрированный график изменения абсолютной важности переменных'
+        title = "Центрированный график изменения абсолютной важности переменных"
     else:
-        title = 'Центрированный график изменения важности переменных'
+        title = "Центрированный график изменения важности переменных"
     plot.set_title(title, fontsize=18)
 
     explainer = shap.TreeExplainer(model)
 
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
+    if "y" in data.columns:
+        data_copy = data_copy.drop("y", axis=1)
 
     cols, indexes = top5_find_by_importance(explainer, data_copy)
 
@@ -106,7 +105,7 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
 
     plot.grid()
     plot.set_xlabel(col_name, fontsize=16)
-    plot.set_ylabel('Важность переменных', fontsize=16)
+    plot.set_ylabel("Важность переменных", fontsize=16)
     plot.legend()
 
     return plot
@@ -114,8 +113,8 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
 
 def ice_plot_data_y(model, data, col_name):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
+    if "y" in data.columns:
+        data_copy = data_copy.drop("y", axis=1)
 
     col_vals = create_variable_list(data[col_name])
     res_vals = []
@@ -145,10 +144,11 @@ def create_variable_list(col):
             min_val += delta
     return col_vals
 
+
 def ice_plot_data_importance(explainer, data, col_name):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
+    if "y" in data.columns:
+        data_copy = data_copy.drop("y", axis=1)
 
     col_vals = create_variable_list(data[col_name])
     res_vals = []
@@ -170,12 +170,12 @@ def plot_ice_plot(model, data, col_name, importance=False):
     if importance:
         explainer = shap.TreeExplainer(model)
         res_vals, col_vals = ice_plot_data_importance(explainer, data, col_name)
-        y_label = f'Важность переменной {col_name}'
-        title = f'с-ICE график изменения важности переменной {col_name}'
+        y_label = f"Важность переменной {col_name}"
+        title = f"с-ICE график изменения важности переменной {col_name}"
     else:
         res_vals, col_vals = ice_plot_data_y(model, data, col_name)
-        y_label = 'Вероятность удачного исхода'
-        title = f'с-ICE график вероятности удачного исхода при изменении переменной {col_name}'
+        y_label = "Вероятность удачного исхода"
+        title = f"с-ICE график вероятности удачного исхода при изменении переменной {col_name}"
 
     df = pd.DataFrame(np.array(res_vals))
     df = df.T
@@ -185,13 +185,12 @@ def plot_ice_plot(model, data, col_name, importance=False):
     plot.set_title(title, fontsize=18)
 
     for i in df.index:
-        plot.plot(col_vals, df.loc[i], color='black', linewidth=0.1)
+        plot.plot(col_vals, df.loc[i], color="black", linewidth=0.1)
 
-    plot.plot(col_vals, mean, color='lime', linewidth=6)
+    plot.plot(col_vals, mean, color="lime", linewidth=6)
 
     plot.grid()
     plot.set_xlabel(col_name, fontsize=16)
     plot.set_ylabel(y_label, fontsize=16)
 
     return plot
-
