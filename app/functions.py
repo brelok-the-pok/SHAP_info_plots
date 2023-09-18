@@ -10,8 +10,6 @@ colors = ['brown', 'teal', 'blue', 'coral', 'limegreen']
 
 def find_categorical(data):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
     categorical = []
 
     for col in data_copy.columns:
@@ -34,8 +32,6 @@ def savePickle(obj, path):
 
 def getMinMax(data):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
     ar = np.array(data_copy)
     minMax = [np.amin(ar, axis=0), np.amax(ar, axis=0)]
     return minMax
@@ -50,14 +46,17 @@ def top5_centered_importance(explainer, data, col_name):
     for val in col_vals:
         new_col = len(data_copy[col_name]) * [val]
         data_copy[col_name] = new_col
-        shap_values = explainer(data_copy).values
+        shap_values = explainer.shap_values(
+            data_copy.drop("Survived", axis=1),
+            y=data_copy["Survived"]
+        )
         res_vals.append(shap_values)
 
     return res_vals, col_vals
 
 
 def top5_find_by_importance(explainer, data):
-    shap_values = explainer(data).values
+    shap_values = explainer.shap_values(data.drop("Survived", axis=1), y=data["Survived"])
 
     col_names = []
     indexes = []
@@ -84,8 +83,6 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
     explainer = shap.TreeExplainer(model)
 
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
 
     cols, indexes = top5_find_by_importance(explainer, data_copy)
 
@@ -114,8 +111,6 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
 
 def ice_plot_data_y(model, data, col_name):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
 
     col_vals = create_variable_list(data[col_name])
     res_vals = []
@@ -123,7 +118,7 @@ def ice_plot_data_y(model, data, col_name):
     for val in col_vals:
         new_col = len(data_copy[col_name]) * [val]
         data_copy[col_name] = new_col
-        predict = model.predict_proba(data_copy)[:, 1]
+        predict = model.predict_proba(data_copy.drop("Survived", axis=1))[:, 1]
         res_vals.append(predict)
 
     return res_vals, col_vals
@@ -147,8 +142,6 @@ def create_variable_list(col):
 
 def ice_plot_data_importance(explainer, data, col_name):
     data_copy = data.copy()
-    if 'y' in data.columns:
-        data_copy = data_copy.drop('y', axis=1)
 
     col_vals = create_variable_list(data[col_name])
     res_vals = []
@@ -157,7 +150,11 @@ def ice_plot_data_importance(explainer, data, col_name):
         new_col = len(data_copy[col_name]) * [val]
         data_copy[col_name] = new_col
 
-        shap_values = np.array(explainer(data_copy).values)
+        shap_values = explainer.shap_values(
+            data_copy.drop("Survived", axis=1),
+            y=data_copy["Survived"]
+        )
+        shap_values = np.array(shap_values)
 
         res_vals.append(shap_values[:, list(data.columns).index(col_name)])
 
