@@ -9,3 +9,7 @@ stylesheet = """
     border-right-style: solid;
     border-radius: 0px;
 """
+
+
+dataset_load_error = "Загруженный объект не является выборкой"
+model_load_error = "Загруженный объект не является выборкой"

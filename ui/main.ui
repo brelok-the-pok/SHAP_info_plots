@@ -23,7 +23,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
-         <widget class="QComboBox" name="comboBox">
+         <widget class="QComboBox" name="plots_combo_box">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -77,7 +77,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QPushButton" name="pushButtonPlot">
+           <widget class="QPushButton" name="push_button_plot">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -131,44 +131,44 @@
     <property name="title">
      <string>Файл</string>
     </property>
-    <addaction name="openFile"/>
-    <addaction name="saveFile"/>
+    <addaction name="open_file_action"/>
+    <addaction name="save_file_action"/>
     <addaction name="separator"/>
-    <addaction name="loadModel"/>
-    <addaction name="loadDataset"/>
+    <addaction name="load_model_action"/>
+    <addaction name="load_dataset_action"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
      <string>Графики</string>
     </property>
-    <addaction name="savePlot"/>
+    <addaction name="save_plot_action"/>
     <addaction name="separator"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="openFile">
+  <action name="open_file_action">
    <property name="text">
     <string>Открыть</string>
    </property>
   </action>
-  <action name="saveFile">
+  <action name="save_file_action">
    <property name="text">
     <string>Сохранить</string>
    </property>
   </action>
-  <action name="loadModel">
+  <action name="load_model_action">
    <property name="text">
     <string>Загрузить модель</string>
    </property>
   </action>
-  <action name="loadDataset">
+  <action name="load_dataset_action">
    <property name="text">
     <string>Загрузить выборку</string>
    </property>
   </action>
-  <action name="savePlot">
+  <action name="save_plot_action">
    <property name="text">
     <string>Сохранить как</string>
    </property>

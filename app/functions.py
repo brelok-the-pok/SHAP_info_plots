@@ -18,18 +18,6 @@ def find_categorical(data):
     return categorical
 
 
-def loadPickle(path):
-    try:
-        file = pickle.load(open(path, "rb"))
-    except:
-        file = None
-    return file
-
-
-def savePickle(obj, path):
-    pickle.dump(obj, open(path, "wb"))
-
-
 def getMinMax(data):
     data_copy = data.copy()
     ar = np.array(data_copy)
