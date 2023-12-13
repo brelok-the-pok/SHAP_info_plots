@@ -1,12 +1,9 @@
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (QMainWindow, QTextEdit,
-                             QAction, QFileDialog, QApplication, QGraphicsView)
+from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog, QGraphicsView,
+                             QMainWindow, QTextEdit)
 
 
 class PlotDataDialog(QMainWindow):
-
     def setupUi(self, Dialog, columns, categorical, minNmax, owner):
         self.dialog = Dialog
         self.minMax = minNmax
@@ -16,7 +13,9 @@ class PlotDataDialog(QMainWindow):
 
         Dialog.setObjectName("Dialog")
         Dialog.resize(320, 191)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(Dialog.sizePolicy().hasHeightForWidth())
@@ -24,7 +23,9 @@ class PlotDataDialog(QMainWindow):
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.labelTop = QtWidgets.QLabel(Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labelTop.sizePolicy().hasHeightForWidth())
@@ -40,10 +41,14 @@ class PlotDataDialog(QMainWindow):
         self.comboBoxVar1.addItem("")
         self.verticalLayout.addWidget(self.comboBoxVar1)
         self.checkBoxCategorical = QtWidgets.QCheckBox(Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.checkBoxCategorical.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.checkBoxCategorical.sizePolicy().hasHeightForWidth()
+        )
         self.checkBoxCategorical.setSizePolicy(sizePolicy)
         self.checkBoxCategorical.setObjectName("checkBoxCategorical")
         self.verticalLayout.addWidget(self.checkBoxCategorical)
@@ -83,10 +88,10 @@ class PlotDataDialog(QMainWindow):
         self.verticalLayout.addLayout(self.horizontalLayout)
 
         self.comboBoxVar1.clear()
-        self.comboBoxVar1.addItems(columns[0:len(columns) - 1])
+        self.comboBoxVar1.addItems(columns[0 : len(columns) - 1])
 
         self.comboBoxCategoricalVar.clear()
-        self.comboBoxCategoricalVar.addItems(categorical[0:len(categorical) - 1])
+        self.comboBoxCategoricalVar.addItems(categorical[0 : len(categorical) - 1])
 
         self.comboBoxVar1.currentIndexChanged.connect(self.changeMinMax)
 
@@ -95,22 +100,28 @@ class PlotDataDialog(QMainWindow):
         self.pushButtonCancelPlot.clicked.connect(self.closeButton)
         self.pushButtonAcceptPlot.clicked.connect(self.sendPlotData)
 
-        self.doubleSpinBoxMinValue.valueChanged.connect(self.doubleSpinBoxMinValueValueChanged)
-        self.doubleSpinBoxMaxValue.valueChanged.connect(self.doubleSpinBoxMaxValueValueChanged)
+        self.doubleSpinBoxMinValue.valueChanged.connect(
+            self.doubleSpinBoxMinValueValueChanged
+        )
+        self.doubleSpinBoxMaxValue.valueChanged.connect(
+            self.doubleSpinBoxMaxValueValueChanged
+        )
 
         self.changeSpinBoxes(minNmax[0][0], minNmax[1][0])
 
         self.retranslateUi(Dialog)
-        self.checkBoxCategorical.toggled['bool'].connect(self.comboBoxCategoricalVar.setEnabled)
+        self.checkBoxCategorical.toggled["bool"].connect(
+            self.comboBoxCategoricalVar.setEnabled
+        )
 
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def doubleSpinBoxMinValueValueChanged(self):
-        print('A')
+        print("A")
         pass
 
     def doubleSpinBoxMaxValueValueChanged(self):
-        print('B')
+        print("B")
         pass
 
     def changeSpinBoxes(self, min, max):
@@ -142,12 +153,14 @@ class PlotDataDialog(QMainWindow):
                 msg = QtWidgets.QMessageBox()
                 msg.setIcon(QtWidgets.QMessageBox.Warning)
                 msg.setWindowTitle("Ошибка")
-                msg.setText("Именна переменной варьирования и категориальной переменной не могут совпадать")
+                msg.setText(
+                    "Именна переменной варьирования и категориальной переменной не могут совпадать"
+                )
                 msg.show()
                 msg.exec_()
                 return
         else:
-            categoricalColl = ''
+            categoricalColl = ""
         self.dialog.hide()
         self.owner.createPlots(colName, minVal, maxVal, categoricalColl)
         self.dialog.close()
@@ -155,8 +168,12 @@ class PlotDataDialog(QMainWindow):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.labelTop.setText(_translate("Dialog",
-                                         "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных"))
+        self.labelTop.setText(
+            _translate(
+                "Dialog",
+                "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных",
+            )
+        )
 
         self.checkBoxCategorical.setText(_translate("Dialog", "По категориям"))
         self.labelMinValue.setText(_translate("Dialog", "Минимум"))

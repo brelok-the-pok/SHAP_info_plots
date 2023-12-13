@@ -1,29 +1,17 @@
-from PyQt5 import QtWidgets, uic, QtCore, QtGui
-from PyQt5.QtWidgets import QFileDialog
-from pathlib import Path
-from PlotData import PlotDataDialog
-from functions import loadPickle, savePickle, getMinMax, plot_ice_plot, plot_top5_centered_importance, find_categorical
-
-import sys
 import os
-import matplotlib.pyplot as plt
-import tempfile
 import shutil
-
-from PyQt5 import QtWidgets, uic, QtCore, QtGui
-from PyQt5.QtWidgets import QFileDialog
+import sys
+import tempfile
 from pathlib import Path
-from PlotData import PlotDataDialog
 
-from functions import (
-    loadPickle,
-    savePickle,
-    getMinMax,
-    plot_ice_plot,
-    plot_top5_centered_importance,
-    find_categorical,
-)
+import matplotlib.pyplot as plt
 from constants import stylesheet
+from functions import (find_categorical, getMinMax, loadPickle, plot_ice_plot,
+                       plot_top5_centered_importance, savePickle)
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QFileDialog
+
+from PlotData import PlotDataDialog
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -89,7 +77,6 @@ class Ui(QtWidgets.QMainWindow):
             modelNdata = loadPickle(fname[0])
 
             if modelNdata is not None:
-
                 try:
                     modelNdata[1].columns
                 except:
@@ -138,7 +125,6 @@ class Ui(QtWidgets.QMainWindow):
             data = loadPickle(fname[0])
 
             if data is not None:
-
                 try:
                     data.columns
                 except:
@@ -267,7 +253,6 @@ class Ui(QtWidgets.QMainWindow):
             model = loadPickle(fname[0])
 
             if model is not None:
-
                 try:
                     model.classes_
                 except:

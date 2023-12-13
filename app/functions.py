@@ -1,11 +1,11 @@
+import pickle
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import shap
-import pickle
 
-colors = ['brown', 'teal', 'blue', 'coral', 'limegreen']
-
+colors = ["brown", "teal", "blue", "coral", "limegreen"]
 
 
 def find_categorical(data):
@@ -47,8 +47,7 @@ def top5_centered_importance(explainer, data, col_name):
         new_col = len(data_copy[col_name]) * [val]
         data_copy[col_name] = new_col
         shap_values = explainer.shap_values(
-            data_copy.drop("Survived", axis=1),
-            y=data_copy["Survived"]
+            data_copy.drop("Survived", axis=1), y=data_copy["Survived"]
         )
         res_vals.append(shap_values)
 
@@ -56,7 +55,9 @@ def top5_centered_importance(explainer, data, col_name):
 
 
 def top5_find_by_importance(explainer, data):
-    shap_values = explainer.shap_values(data.drop("Survived", axis=1), y=data["Survived"])
+    shap_values = explainer.shap_values(
+        data.drop("Survived", axis=1), y=data["Survived"]
+    )
 
     col_names = []
     indexes = []
@@ -75,9 +76,9 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
     plot.figure.set_size_inches(16, 8)
 
     if absolute:
-        title = 'Центрированный график изменения абсолютной важности переменных'
+        title = "Центрированный график изменения абсолютной важности переменных"
     else:
-        title = 'Центрированный график изменения важности переменных'
+        title = "Центрированный график изменения важности переменных"
     plot.set_title(title, fontsize=18)
 
     explainer = shap.TreeExplainer(model)
@@ -103,7 +104,7 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
 
     plot.grid()
     plot.set_xlabel(col_name, fontsize=16)
-    plot.set_ylabel('Важность переменных', fontsize=16)
+    plot.set_ylabel("Важность переменных", fontsize=16)
     plot.legend()
 
     return plot
@@ -140,6 +141,7 @@ def create_variable_list(col):
             min_val += delta
     return col_vals
 
+
 def ice_plot_data_importance(explainer, data, col_name):
     data_copy = data.copy()
 
@@ -151,8 +153,7 @@ def ice_plot_data_importance(explainer, data, col_name):
         data_copy[col_name] = new_col
 
         shap_values = explainer.shap_values(
-            data_copy.drop("Survived", axis=1),
-            y=data_copy["Survived"]
+            data_copy.drop("Survived", axis=1), y=data_copy["Survived"]
         )
         shap_values = np.array(shap_values)
 
@@ -167,12 +168,12 @@ def plot_ice_plot(model, data, col_name, importance=False):
     if importance:
         explainer = shap.TreeExplainer(model)
         res_vals, col_vals = ice_plot_data_importance(explainer, data, col_name)
-        y_label = f'Важность переменной {col_name}'
-        title = f'с-ICE график изменения важности переменной {col_name}'
+        y_label = f"Важность переменной {col_name}"
+        title = f"с-ICE график изменения важности переменной {col_name}"
     else:
         res_vals, col_vals = ice_plot_data_y(model, data, col_name)
-        y_label = 'Вероятность удачного исхода'
-        title = f'с-ICE график вероятности удачного исхода при изменении переменной {col_name}'
+        y_label = "Вероятность удачного исхода"
+        title = f"с-ICE график вероятности удачного исхода при изменении переменной {col_name}"
 
     df = pd.DataFrame(np.array(res_vals))
     df = df.T
@@ -182,13 +183,12 @@ def plot_ice_plot(model, data, col_name, importance=False):
     plot.set_title(title, fontsize=18)
 
     for i in df.index:
-        plot.plot(col_vals, df.loc[i], color='black', linewidth=0.1)
+        plot.plot(col_vals, df.loc[i], color="black", linewidth=0.1)
 
-    plot.plot(col_vals, mean, color='lime', linewidth=6)
+    plot.plot(col_vals, mean, color="lime", linewidth=6)
 
     plot.grid()
     plot.set_xlabel(col_name, fontsize=16)
     plot.set_ylabel(y_label, fontsize=16)
 
     return plot
-
