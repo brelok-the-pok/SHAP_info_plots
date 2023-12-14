@@ -1,6 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog, QGraphicsView,
-                             QMainWindow, QTextEdit)
+from PyQt5.QtWidgets import (
+    QAction,
+    QApplication,
+    QFileDialog,
+    QGraphicsView,
+    QMainWindow,
+    QTextEdit,
+)
 
 
 class PlotDataDialog(QMainWindow):
@@ -11,8 +17,7 @@ class PlotDataDialog(QMainWindow):
         self.categorical = categorical
         self.owner = owner
 
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(320, 191)
+        Dialog.resize(460, 200)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
         )
@@ -93,19 +98,10 @@ class PlotDataDialog(QMainWindow):
         self.comboBoxCategoricalVar.clear()
         self.comboBoxCategoricalVar.addItems(categorical[0 : len(categorical) - 1])
 
-        self.comboBoxVar1.currentIndexChanged.connect(self.changeMinMax)
+        self.comboBoxVar1.currentIndexChanged.connect(self.change_boundaries)
 
-        print(self.comboBoxVar1.currentIndex())
-
-        self.pushButtonCancelPlot.clicked.connect(self.closeButton)
-        self.pushButtonAcceptPlot.clicked.connect(self.sendPlotData)
-
-        self.doubleSpinBoxMinValue.valueChanged.connect(
-            self.doubleSpinBoxMinValueValueChanged
-        )
-        self.doubleSpinBoxMaxValue.valueChanged.connect(
-            self.doubleSpinBoxMaxValueValueChanged
-        )
+        self.pushButtonCancelPlot.clicked.connect(self.close_button)
+        self.pushButtonAcceptPlot.clicked.connect(self.send_plot_data)
 
         self.changeSpinBoxes(minNmax[0][0], minNmax[1][0])
 
@@ -116,63 +112,53 @@ class PlotDataDialog(QMainWindow):
 
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
-    def doubleSpinBoxMinValueValueChanged(self):
-        print("A")
-        pass
+    def changeSpinBoxes(self, min_value, max_value):
+        self.doubleSpinBoxMinValue.setMinimum(min_value)
+        self.doubleSpinBoxMinValue.setMaximum(max_value)
+        self.doubleSpinBoxMinValue.setValue(min_value)
 
-    def doubleSpinBoxMaxValueValueChanged(self):
-        print("B")
-        pass
+        self.doubleSpinBoxMaxValue.setMinimum(min_value)
+        self.doubleSpinBoxMaxValue.setMaximum(max_value)
+        self.doubleSpinBoxMaxValue.setValue(max_value)
 
-    def changeSpinBoxes(self, min, max):
-        self.doubleSpinBoxMinValue.setMinimum(min)
-        self.doubleSpinBoxMinValue.setMaximum(max)
-        self.doubleSpinBoxMinValue.setValue(min)
+    def change_boundaries(self):
+        column_index = self.comboBoxVar1.currentIndex()
+        min_value = self.minMax[0][column_index]
+        max_value = self.minMax[1][column_index]
+        self.changeSpinBoxes(min_value, max_value)
 
-        self.doubleSpinBoxMaxValue.setMinimum(min)
-        self.doubleSpinBoxMaxValue.setMaximum(max)
-        self.doubleSpinBoxMaxValue.setValue(max)
-
-    def changeMinMax(self):
-        i = self.comboBoxVar1.currentIndex()
-        min = self.minMax[0][i]
-        max = self.minMax[1][i]
-        self.changeSpinBoxes(min, max)
-
-    def closeButton(self):
+    def close_button(self):
         self.dialog.close()
 
-    def sendPlotData(self):
-        colName = self.comboBoxVar1.currentText()
-        minVal = self.doubleSpinBoxMinValue.value()
-        maxVal = self.doubleSpinBoxMaxValue.value()
-        categorical = self.checkBoxCategorical.isChecked()
-        if categorical:
-            categoricalColl = self.comboBoxCategoricalVar.currentText()
-            if categoricalColl == colName:
-                msg = QtWidgets.QMessageBox()
-                msg.setIcon(QtWidgets.QMessageBox.Warning)
-                msg.setWindowTitle("Ошибка")
-                msg.setText(
-                    "Именна переменной варьирования и категориальной переменной не могут совпадать"
-                )
-                msg.show()
-                msg.exec_()
-                return
-        else:
-            categoricalColl = ""
+    def send_plot_data(self):
+        column = self.comboBoxVar1.currentText()
+        min_value = self.doubleSpinBoxMinValue.value()
+        max_value = self.doubleSpinBoxMaxValue.value()
+
+        is_category_plot = self.checkBoxCategorical.isChecked()
+        category_column = (
+            self.comboBoxCategoricalVar.currentText() if is_category_plot else ""
+        )
+        if is_category_plot and category_column == column:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setWindowTitle("Ошибка")
+            msg.setText(
+                "Именна переменной варьирования и категориальной переменной не могут совпадать"
+            )
+            msg.show()
+            msg.exec_()
+            return
+
         self.dialog.hide()
-        self.owner.createPlots(colName, minVal, maxVal, categoricalColl)
+        self.owner.createPlots(column, min_value, max_value, category_column)
         self.dialog.close()
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle("Параметры графиков")
         self.labelTop.setText(
-            _translate(
-                "Dialog",
-                "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных",
-            )
+            "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных"
         )
 
         self.checkBoxCategorical.setText(_translate("Dialog", "По категориям"))

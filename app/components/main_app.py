@@ -1,7 +1,4 @@
-import os
-import shutil
 import tempfile
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 from app.constants import (
@@ -24,11 +21,10 @@ from app.functions import (
 from pandas import DataFrame
 from xgboost import XGBClassifier
 from app.services.pickle_service import PickleService
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5 import QtCore, QtWidgets, uic
 from app.schemes.pickled_data import DatasetModelMonoObject
 from app.services.qt_helper import QtHelper
-from PlotData import PlotDataDialog
+from app.components.plot_settings_app import PlotDataDialog
 from app.components.plot_container import PlotContainer
 from app.services.dataset_renderer import DatasetRendered
 
