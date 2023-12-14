@@ -4,13 +4,25 @@ import tempfile
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from app.constants import stylesheet
+from app.constants import (
+    stylesheet,
+    debug_file_path,
+    dataset_and_model_loaded_message,
+    data_is_awaited_message,
+    only_dataset_loaded_message,
+    only_model_loaded_message,
+    save_complete_message,
+    no_plots_message,
+)
+from app.services.created_plots_saver import CreatedPlotsSaver
 from app.functions import (
     find_categorical,
     getMinMax,
     plot_ice_plot,
     plot_top5_centered_importance,
 )
+from pandas import DataFrame
+from xgboost import XGBClassifier
 from app.services.pickle_service import PickleService
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtWidgets import QFileDialog
@@ -18,6 +30,7 @@ from app.schemes.pickled_data import DatasetModelMonoObject
 from app.services.qt_helper import QtHelper
 from PlotData import PlotDataDialog
 from app.components.plot_container import PlotContainer
+from app.services.dataset_renderer import DatasetRendered
 
 
 class MainApp(QtWidgets.QMainWindow):
@@ -30,13 +43,13 @@ class MainApp(QtWidgets.QMainWindow):
         uic.loadUi("../ui/main.ui", self)
 
         self.open_file_action.setStatusTip("Открыть файл проекта")
-        self.open_file_action.triggered.connect(self.OpenSavedFile)
+        self.open_file_action.triggered.connect(self.open_saved_file)
 
         self.save_file_action.setStatusTip("Сохранить файл модели и выборки")
         self.save_file_action.triggered.connect(self.save_file)
 
         self.load_model_action.setStatusTip("Открыть файл модели")
-        self.load_model_action.triggered.connect(self.OpenModel)
+        self.load_model_action.triggered.connect(self.open_model)
 
         self.load_dataset_action.setStatusTip("Открыть файл выборки")
         self.load_dataset_action.triggered.connect(self.open_dataset)
@@ -45,292 +58,162 @@ class MainApp(QtWidgets.QMainWindow):
 
         self.push_button_plot.clicked.connect(self.make_plots)
 
-        self.plots_combo_box.currentIndexChanged.connect(self.changeGrath)
+        self.plots_combo_box.currentIndexChanged.connect(self.switch_plots)
 
         self.statusBar().showMessage("Ожидается загрузка модели и датасета")
 
         self.is_model_loaded = False
         self.is_dataset_loaded = False
 
-        self.model = None
-        self.data = None
-        self.clear_data = None
+        self.__model = None
+        self.__dataset = None
 
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp_dir = tempfile.TemporaryDirectory()
 
         self.setWindowState(QtCore.Qt.WindowMaximized)
         self.debug_start()
         self.show()
 
+    @property
+    def dataset(self) -> DataFrame:
+        return self.__dataset
+
+    @dataset.setter
+    def dataset(self, dataset) -> None:
+        self.is_dataset_loaded = True
+        self.__dataset = dataset
+
+        self.create_columns()
+        self.create_rows()
+        self.show_data_status()
+
+    @property
+    def model(self) -> XGBClassifier:
+        return self.__model
+
+    @model.setter
+    def model(self, model) -> None:
+        self.is_model_loaded = True
+        self.__model = model
+        self.show_data_status()
+
     def closeEvent(self, event):
-        self.temp.cleanup()
+        self.temp_dir.cleanup()
 
     def debug_start(self):
-        fname = "../data/obj_v2"
-        mono_object = self.__pickle_service.get_dataset_and_model(fname)
+        self.open_saved_file(debug_file_path)
+
+    def show_data_status(self) -> None:
+        if self.is_dataset_loaded and self.is_model_loaded:
+            self.statusBar().showMessage(dataset_and_model_loaded_message)
+        elif self.is_dataset_loaded:
+            self.statusBar().showMessage(only_dataset_loaded_message)
+        elif self.is_model_loaded:
+            self.statusBar().showMessage(only_model_loaded_message)
+        else:
+            self.statusBar().showMessage(data_is_awaited_message)
+
+    def open_saved_file(self, path: str = ""):
+        if not path:
+            file_name = self.__qt_helper.get_path_to_open_file(self)
+        else:
+            file_name = path
+
+        if not file_name:
+            return
+
+        mono_object = self.__pickle_service.get_dataset_and_model(file_name)
+
         self.model = mono_object.model
-        self.data = mono_object.dataset
-        self.clear_data = self.data
-
-        self.create_columns(self.data)
-        self.create_rows(self.data)
-
-        self.is_model_loaded = True
-        self.is_dataset_loaded = True
-
-        self.statusBar().showMessage("Загрузка датасета и модели произведена")
-
-    def OpenSavedFile(self):
-        home_dir = str(Path.cwd())
-        fname = QFileDialog.getOpenFileName(self, "Открыть файл", home_dir)
-        if fname[0]:
-            modelNdata = self.__pickle_service.get_dataset_and_model(fname[0])
-
-            if modelNdata is not None:
-                try:
-                    modelNdata[1].columns
-                except:
-                    self.statusBar().showMessage(
-                        "Загруженный объект не является сохранённым"
-                    )
-                    return
-
-                try:
-                    modelNdata[0].classes_
-                except:
-                    self.statusBar().showMessage(
-                        "Загруженный объект не является сохранённым"
-                    )
-                    return
-
-                self.model = modelNdata[0]
-                self.data = modelNdata[1]
-
-                self.create_columns(self.data)
-                self.create_rows(self.data)
-
-                self.is_model_loaded = True
-                self.is_dataset_loaded = True
-
-                self.statusBar().showMessage("Загрузка датасета и модели произведена")
-            else:
-                self.statusBar().showMessage("Ошибка загрузки, неверный файл")
+        self.dataset = mono_object.dataset
 
     def save_file(self):
-        if self.is_model_loaded and self.is_dataset_loaded:
-            fname = QFileDialog.getSaveFileName(self, "Сохранить файл", str(Path.cwd()))
+        if not all([self.is_dataset_loaded, self.is_model_loaded]):
+            self.show_data_status()
+            return
 
-            if path := fname[0]:
-                mono = DatasetModelMonoObject(dataset=self.data, model=self.model)
-                self.__pickle_service.save_dataset_and_model(mono, path)
+        file_name = self.__qt_helper.get_path_to_save_file(self)
 
-                self.statusBar().showMessage("Сохранение модели и датасета произведено")
-        else:
-            self.statusBar().showMessage("Не загружена модель или датасет")
+        if not file_name:
+            return
+
+        mono = DatasetModelMonoObject(dataset=self.__dataset, model=self.model)
+        self.__pickle_service.save_dataset_and_model(mono, file_name)
+
+        self.statusBar().showMessage(save_complete_message)
 
     def open_dataset(self):
-        path = self.__qt_helper.get_path_to_file(self)
+        path = self.__qt_helper.get_path_to_open_file(self)
 
         if not path:
             return None
 
-        data = self.__pickle_service.get_dataset(path)
+        self.dataset = self.__pickle_service.get_dataset(path)
 
-        self.data = data
-        self.clear_data = data
+    def create_columns(self):
+        layout = DatasetRendered(self.dataset).get_rendered_info_plots_layout()
+        self.tabCollumns.setLayout(layout)
 
-        self.create_columns(self.data)
-        self.create_rows(self.data)
+    def create_rows(self):
+        layout = DatasetRendered(self.dataset).get_rendered_data_layout()
+        self.tabData.setLayout(layout)
 
-        self.is_dataset_loaded = True
+    def open_model(self):
+        file_name = self.__qt_helper.get_path_to_open_file(self)
 
-        if self.is_model_loaded:
-            self.statusBar().showMessage("Загрузка выборки произведена.")
-        else:
-            self.statusBar().showMessage(
-                "Загрузка выборки произведена. Ожидается загрузка модели"
-            )
+        if not file_name:
+            return
 
-    def create_columns(self, data):
-        vertLayout = QtWidgets.QVBoxLayout()
-        groupBox = QtWidgets.QGroupBox()
-        shape = data.shape
-
-        temp = tempfile.TemporaryDirectory()
-
-        for i in range(0, shape[1]):
-            groupBox1 = QtWidgets.QGroupBox()
-            groupBox1.setStyleSheet(stylesheet)
-
-            minLabel = QtWidgets.QLabel(f"min: {round(data[data.columns[i]].min(), 2)}")
-            meanLabel = QtWidgets.QLabel(
-                f"mean: {round(data[data.columns[i]].mean(), 2)}"
-            )
-            maxLabel = QtWidgets.QLabel(f"max: {round(data[data.columns[i]].max(), 2)}")
-
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(minLabel)
-            vbox.addWidget(meanLabel)
-            vbox.addWidget(maxLabel)
-
-            label = QtWidgets.QLabel()
-            plt.clf()
-            plot = plt.axes()
-            plot.hist(x=data[data.columns[i]], label=data.columns[i])
-            # plot.set_title(data.columns[i])
-            plot.get_xaxis().set_ticklabels([])
-            plot.get_yaxis().set_ticklabels([])
-            plot.get_figure().savefig(temp.name + f"/img{i}.svg")
-
-            pixmap = QtGui.QPixmap(temp.name + f"/img{i}.svg")
-            pixmap = pixmap.scaledToHeight(200).scaledToWidth(200)
-            label.setPixmap(pixmap)
-
-            hbox = QtWidgets.QHBoxLayout()
-            hbox.addWidget(label)
-            hbox.addLayout(vbox)
-
-            # vertLayout.addLayout(hbox)
-            hbox.setContentsMargins(0, 12, 0, 0)
-            hbox.setStretch(0, 4)
-            hbox.setStretch(1, 1)
-            groupBox1.setLayout(hbox)
-            groupBox1.setTitle(data.columns[i])
-            vertLayout.addWidget(groupBox1)
-
-        groupBox.setLayout(vertLayout)
-        scroll = QtWidgets.QScrollArea()
-        scroll.setWidget(groupBox)
-        scroll.setWidgetResizable(True)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(scroll)
-
-        vvlayout = QtWidgets.QVBoxLayout()
-        vvlayout.addLayout(layout)
-
-        self.tabCollumns.setLayout(vvlayout)
-
-    def create_rows(self, data):
-        vLayout = QtWidgets.QVBoxLayout()
-
-        tableWidget = QtWidgets.QTableWidget()
-        tableWidget.setSortingEnabled(True)
-
-        shape = data.shape
-
-        tableWidget.setColumnCount(shape[1])
-        tableWidget.setRowCount(shape[0])
-
-        columns = list(data.columns)
-        tableWidget.setHorizontalHeaderLabels(columns)
-
-        color_white = QtGui.QColor(255, 255, 255)
-        color_beige = QtGui.QColor(235, 204, 153)
-        cur_color = color_white
-
-        for i in range(0, shape[0]):
-            if cur_color == color_beige:
-                cur_color = color_white
-            else:
-                cur_color = color_beige
-
-            for j in range(0, shape[1]):
-                item = QtWidgets.QTableWidgetItem(f"{data.loc[i][j]}")
-                item.setFlags(QtCore.Qt.ItemIsEnabled)
-                tableWidget.setItem(i, j, item)
-                tableWidget.item(i, j).setBackground(cur_color)
-
-        tableWidget.setFont(QtGui.QFont("Arial", 12))
-        tableWidget.resizeColumnsToContents()
-
-        vLayout.addWidget(tableWidget)
-        self.tabData.setLayout(vLayout)
-
-    def OpenModel(self):
-        home_dir = str(Path.cwd())
-        fname = QFileDialog.getOpenFileName(self, "Open file", home_dir)
-        if fname[0]:
-            model = self.__pickle_service.get_model(fname[0])
-
-            if model is not None:
-                try:
-                    model.classes_
-                except:
-                    self.statusBar().showMessage(
-                        "Загруженный объект не является моделью"
-                    )
-                    return
-
-                self.model = model
-                self.is_model_loaded = True
-                self.statusBar().showMessage("Загрузка модели произведена")
-
-                if self.is_dataset_loaded:
-                    self.statusBar().showMessage("Загрузка модели произведена.")
-                else:
-                    self.statusBar().showMessage(
-                        "Загрузка модели произведена. Ожидается загрузка выборки"
-                    )
-            else:
-                self.statusBar().showMessage("Ошибка загрузки, неверный файл")
+        self.model = self.__pickle_service.get_model(file_name)
 
     def save_plots(self):
-        if self.plots_combo_box.count() != 0:
-            home_dir = str(Path.cwd())
-            dir_name = QFileDialog.getExistingDirectory(
-                self, "Сохранить файл", home_dir
-            )
-            if dir_name:
-                files = os.listdir(self.temp.name)
-                for file in files:
-                    if ".png" in file:
-                        shutil.copy2(f"{self.temp.name}\\{file}", f"{dir_name}\\{file}")
-        else:
-            self.statusBar().showMessage(
-                "Сохранение графиков невозможно, графики не были построены"
-            )
+        if self.plots_combo_box.count() == 0:
+            self.statusBar().showMessage(no_plots_message)
+            return
 
-    def changeGrath(self):
+        path = self.__qt_helper.get_existing_dir_path(self)
+
+        if not path:
+            return
+
+        CreatedPlotsSaver.save_plots(self.temp_dir.name, path)
+
+    def switch_plots(self):
         if not self.is_plots_in_progress:
             text = self.plots_combo_box.currentText()
-            print(text)
-
             self.show_grath(text.replace(":", ""))
 
     def make_plots(self):
-        if self.is_dataset_loaded and self.is_model_loaded:
-            self.dialog = QtWidgets.QDialog()
-            self.ui = PlotDataDialog()
-            minMax = getMinMax(self.clear_data)
-            categorical = find_categorical(self.clear_data)
-            self.ui.setupUi(
-                self.dialog, list(self.clear_data.columns), categorical, minMax, self
-            )
-            self.dialog.show()
-        else:
-            self.statusBar().showMessage(
-                "Для постройки графиков загрузите модель и выборку"
-            )
+        if not self.is_dataset_loaded and self.is_model_loaded:
+            self.show_data_status()
+
+        self.dialog = QtWidgets.QDialog()
+        self.ui = PlotDataDialog()
+        minMax = getMinMax(self.dataset)
+        categorical = find_categorical(self.dataset)
+        self.ui.setupUi(
+            self.dialog, list(self.dataset.columns), categorical, minMax, self
+        )
+        self.dialog.show()
 
     def createPlots(self, colName, minVal, maxVal, categorcal_col=""):
         categorical = categorcal_col != ""
 
-        cond1 = self.clear_data[colName] >= minVal
-        cond2 = self.clear_data[colName] <= maxVal
+        cond1 = self.dataset[colName] >= minVal
+        cond2 = self.dataset[colName] <= maxVal
 
-        cur_data = self.clear_data[cond1 & cond2].reset_index(drop=True)
+        cur_data = self.dataset[cond1 & cond2].reset_index(drop=True)
 
         h = 6
         w = 12
         plt.figure(1, figsize=(1000, 1000), dpi=1)
 
-        temp = self.temp
+        temp = self.temp_dir
 
         self.is_plots_in_progress = True
 
         if categorical:
-            categories = sorted(list(self.clear_data[categorcal_col].unique()))
+            categories = sorted(list(self.dataset[categorcal_col].unique()))
             categories_items = [f"{colName}:{categorcal_col}:{x}" for x in categories]
             self.plots_combo_box.addItems(categories_items)
             self.plots_combo_box.setEnabled(True)
@@ -341,9 +224,9 @@ class MainApp(QtWidgets.QMainWindow):
             for i in range(len(categories)):
                 plt.clf()
 
-                cond3 = self.clear_data[categorcal_col] == categories[i]
+                cond3 = self.dataset[categorcal_col] == categories[i]
 
-                cur_data = self.clear_data[cond1 & cond2 & cond3].reset_index(drop=True)
+                cur_data = self.dataset[cond1 & cond2 & cond3].reset_index(drop=True)
 
                 name = categories_items[i].replace(":", "")
 
@@ -361,7 +244,7 @@ class MainApp(QtWidgets.QMainWindow):
                 if colName == categorcal_col:
                     plot_lb = plot_ice_plot(
                         self.model,
-                        self.clear_data[cond1 & cond2].reset_index(drop=True),
+                        self.dataset[cond1 & cond2].reset_index(drop=True),
                         colName,
                         True,
                     )
@@ -387,7 +270,7 @@ class MainApp(QtWidgets.QMainWindow):
                 if colName == categorcal_col:
                     plot_rb = plot_ice_plot(
                         self.model,
-                        self.clear_data[cond1 & cond2].reset_index(drop=True),
+                        self.dataset[cond1 & cond2].reset_index(drop=True),
                         colName,
                     )
                 else:
@@ -462,7 +345,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.is_plots_in_progress = False
 
     def show_grath_by_name(self, i, j, name):
-        temp = self.temp
+        temp = self.temp_dir
         pixmap = PlotContainer(temp.name + f"/img{2 * i + j}{name}.svg")
         pixmap.setMaximumSize(800, 600)
         pixmap.setStyleSheet(stylesheet)
@@ -474,7 +357,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.gridLayout.addWidget(pixmap, i, j)
 
     def show_grath(self, name):
-        temp = self.temp
+        temp = self.temp_dir
         for i in range(0, 2):
             for j in range(0, 2):
                 pixmap = PlotContainer(temp.name + f"/img{2 * i + j}{name}.svg")
