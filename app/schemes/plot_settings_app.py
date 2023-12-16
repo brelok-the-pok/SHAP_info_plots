@@ -7,4 +7,4 @@ class PlotSettings(BaseModel):
     min_value: float
     max_value: float
     column: str
-    catrgory_column: Optional[str] = None
+    category_column: Optional[str] = None

@@ -10,6 +10,17 @@ from app.constants import PLOT_HEIGHT, PLOT_WIDTH, TOP5_CENTERED_IMPORTANCE_TITL
 from xgboost import XGBClassifier
 import shap
 from app.services.model_explainer import ModelExplainer
+from app.constants import (
+    COLORS,
+    FONT_SIZE,
+    FIG_SIZE,
+    DPI,
+    FIG_COUNT,
+    ICE_PREDICTIONS_TITLE,
+    ICE_PREDICTIONS_Y_LABEL,
+    ICE_IMPORTANCE_TITLE,
+    ICE_IMPORTANCE_Y_LABEL,
+)
 
 
 class PlotCreator:
@@ -25,6 +36,7 @@ class PlotCreator:
         cond2 = dataset[column] <= max_value
 
         self.__model = model
+        self.__explainer = ModelExplainer(self.__model)
         self.__dataset = dataset[cond1 & cond2].reset_index(drop=True)
         self.__column = column
         self.__temp_dir = tempfile.TemporaryDirectory()
@@ -54,19 +66,21 @@ class PlotCreator:
         return self.__make_plots_for_dataset(self.__dataset, f"{self.__column}")
 
     def __make_plots_for_dataset(self, dataset: DataFrame, fig_name: str) -> list[str]:
-        fig_lt = self.__get_top5_centered_importance_plot(dataset, True)
+        self.__explainer.calculate_for_dataset(dataset, self.__column)
+
+        fig_lt = self.__get_top5_centered_importance_plot(False)
         self.__set_fig_settings(fig_lt)
         lt_path = self.__save_fig(fig_lt, f"lt-{fig_name}")
 
-        fig_lb = self.__get_ice_plot(self.__model, dataset, True)
+        fig_lb = self.__get_ice_predictions_plot()
         self.__set_fig_settings(fig_lb)
         lb_path = self.__save_fig(fig_lb, f"lb-{fig_name}")
 
-        fig_rt = self.__get_top5_centered_importance_plot(dataset, False)
+        fig_rt = self.__get_top5_centered_importance_plot(True)
         self.__set_fig_settings(fig_rt)
         rt_path = self.__save_fig(fig_rt, f"rt-{fig_name}")
 
-        fig_rb = self.__get_ice_plot(self.__model, dataset, False)
+        fig_rb = self.__get_ice_importance_plot()
         self.__set_fig_settings(fig_rb)
         rb_path = self.__save_fig(fig_rb, f"rb-{fig_name}")
 
@@ -92,70 +106,73 @@ class PlotCreator:
 
         return self.__dataset[cond].reset_index(drop=True)
 
-    def __get_top5_centered_importance_plot(self, dataset, absolute=False):
-        column = self.__column
+    def __get_top5_centered_importance_plot(self, absolute=False):
+        plot = self.__get_empty_plot(TOP5_CENTERED_IMPORTANCE_TITLE)
 
-        plt.figure(1, figsize=(1000, 1000), dpi=1)
-        plt.clf()
-        plot = plt.axes()
-        plot.figure.set_size_inches(PLOT_WIDTH, PLOT_HEIGHT)
-        plot.set_title(TOP5_CENTERED_IMPORTANCE_TITLE, fontsize=18)
+        columns = self.__explainer.get_n_most_important_columns(5)
+        indexes = [column.index for column in columns]
+        importances = self.__explainer.get_centered_importance()
 
-        explainer = ModelExplainer(self.__model)
-        columns = explainer.get_n_most_important_columns(dataset, 5)
-        res_vals, col_vals = explainer.get_column_centered_importance(dataset, column)
+        mean_values = []
+        for importance in importances.values():
+            values = importance[:, indexes]
 
-        res_vals = np.array(res_vals)
+            if absolute:
+                values = np.absolute(values)
 
-        for i in range(0, len(indexes)):
-            res = []
+            mean_values.append(values.mean(axis=0))
 
-            for j in range(0, len(res_vals)):
-                val = res_vals[j, :, indexes[i]]
-                if absolute:
-                    val = np.absolute(val)
-                res.append(val.mean())
+        for index, column in enumerate(columns):
+            plot.plot(
+                list(importances.keys()),
+                [x[index] for x in mean_values],
+                color=COLORS[index],
+                linewidth=4,
+                label=column.name,
+            )
 
-            plot.plot(col_vals, res, color=colors[i], linewidth=4, label=cols[i])
-
-        plot.grid()
-        plot.set_xlabel(col_name, fontsize=16)
-        plot.set_ylabel("Важность переменных", fontsize=16)
+        self.__set_plot_settings(plot, self.__column, "Важность переменных")
         plot.legend()
 
         return plot.get_figure()
 
-    def __get_ice_plot(self, model, data, importance=False):
-        col_name = self.__column
-
-        plt.figure(1, figsize=(1000, 1000), dpi=1)
+    def __get_empty_plot(self, title: str):
+        plt.figure(FIG_COUNT, figsize=FIG_SIZE, dpi=DPI)
         plt.clf()
         plot = plt.axes()
+        plot.set_title(title, fontsize=FONT_SIZE)
 
-        if importance:
-            explainer = shap.TreeExplainer(model)
-            res_vals, col_vals = __ice_plot_data_importance(explainer, data, col_name)
-            y_label = f"Важность переменной {col_name}"
-            title = f"с-ICE график изменения важности переменной {col_name}"
-        else:
-            res_vals, col_vals = self.__ice_plot_data_y(model, data, col_name)
-            y_label = "Вероятность удачного исхода"
-            title = f"с-ICE график вероятности удачного исхода при изменении переменной {col_name}"
+        return plot
 
-        df = pd.DataFrame(np.array(res_vals))
-        df = df.T
-        mean = df.mean()
+    def __set_plot_settings(self, plot: Any, x_label: str, y_label: str):
+        plot.grid()
+        plot.set_xlabel(x_label, fontsize=FONT_SIZE)
+        plot.set_ylabel(y_label, fontsize=FONT_SIZE)
 
-        plot.figure.set_size_inches(16, 8)
-        plot.set_title(title, fontsize=18)
+    def __get_ice_importance_plot(self):
+        title = ICE_IMPORTANCE_TITLE.format(self.__column)
+        y_label = ICE_IMPORTANCE_Y_LABEL.format(self.__column)
+        importance = self.__explainer.get_ice_importance()
+
+        return self.__plot_ice_plot(importance, title, y_label)
+
+    def __get_ice_predictions_plot(self):
+        title = ICE_PREDICTIONS_TITLE.format(self.__column)
+        y_label = ICE_PREDICTIONS_TITLE.format(self.__column)
+        predictions = self.__explainer.get_ice_predictions()
+
+        return self.__plot_ice_plot(predictions, title, y_label)
+
+    def __plot_ice_plot(self, data: DataFrame, title: str, y_label: str):
+        plot = self.__get_empty_plot(title)
+
+        df = pd.DataFrame(data)
 
         for i in df.index:
-            plot.plot(col_vals, df.loc[i], color="black", linewidth=0.1)
+            plot.plot(df.columns, df.loc[i], color="black", linewidth=0.1)
 
-        plot.plot(col_vals, mean, color="lime", linewidth=6)
+        plot.plot(df.columns, df.mean(), color="lime", linewidth=6)
 
-        plot.grid()
-        plot.set_xlabel(col_name, fontsize=16)
-        plot.set_ylabel(y_label, fontsize=16)
+        self.__set_plot_settings(plot, self.__column, y_label)
 
         return plot.get_figure()

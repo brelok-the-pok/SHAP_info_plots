@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import shap
 
-from constants import colors
+from constants import COLORS
 
 
 def find_category_columns(data):
@@ -88,7 +88,7 @@ def plot_top5_centered_importance(model, data, col_name, absolute=False):
                 val = np.absolute(val)
             res.append(val.mean())
 
-        plot.plot(col_vals, res, color=colors[i], linewidth=4, label=cols[i])
+        plot.plot(col_vals, res, color=COLORS[i], linewidth=4, label=cols[i])
 
     plot.grid()
     plot.set_xlabel(col_name, fontsize=16)
