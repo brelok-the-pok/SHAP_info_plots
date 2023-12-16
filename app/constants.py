@@ -13,6 +13,9 @@ stylesheet = """
     border-radius: 0px;
 """
 
+colors = ["brown", "teal", "blue", "coral", "limegreen"]
+
+
 save_complete_message = "Сохранение завершено"
 
 dataset_load_error = "Загруженный объект не является выборкой"
@@ -30,3 +33,9 @@ debug_file_path = "../data/obj_v2"
 
 qt_color_white = QtGui.QColor(255, 255, 255)
 qt_color_beige = QtGui.QColor(235, 204, 153)
+
+
+PLOT_WIDTH = 16
+PLOT_HEIGHT = 8
+
+TOP5_CENTERED_IMPORTANCE_TITLE = "Центрированный график изменения важности переменных"

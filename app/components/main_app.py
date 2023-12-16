@@ -1,4 +1,5 @@
 import tempfile
+from typing import Any
 
 import matplotlib.pyplot as plt
 from app.constants import (
@@ -11,9 +12,10 @@ from app.constants import (
     save_complete_message,
     no_plots_message,
 )
+from app.schemes.plot_settings_app import PlotSettings
 from app.services.created_plots_saver import CreatedPlotsSaver
 from app.functions import (
-    find_categorical,
+    find_category_columns,
     getMinMax,
     plot_ice_plot,
     plot_top5_centered_importance,
@@ -27,6 +29,7 @@ from app.services.qt_helper import QtHelper
 from app.components.plot_settings_app import PlotDataDialog
 from app.components.plot_container import PlotContainer
 from app.services.dataset_renderer import DatasetRendered
+from app.services.plot_creator import PlotCreator
 
 
 class MainApp(QtWidgets.QMainWindow):
@@ -63,6 +66,8 @@ class MainApp(QtWidgets.QMainWindow):
 
         self.__model = None
         self.__dataset = None
+
+        self.__paths: dict[str, list[str]] = {}
 
         self.temp_dir = tempfile.TemporaryDirectory()
 
@@ -177,191 +182,86 @@ class MainApp(QtWidgets.QMainWindow):
     def switch_plots(self):
         if not self.is_plots_in_progress:
             text = self.plots_combo_box.currentText()
-            self.show_grath(text.replace(":", ""))
+            self.show_plots(text)
 
     def make_plots(self):
         if not self.is_dataset_loaded and self.is_model_loaded:
             self.show_data_status()
 
-        self.dialog = QtWidgets.QDialog()
+        dialog = QtWidgets.QDialog()
         self.ui = PlotDataDialog()
-        minMax = getMinMax(self.dataset)
-        categorical = find_categorical(self.dataset)
+        min_max = getMinMax(self.dataset)
+        category_columns = find_category_columns(self.dataset)
         self.ui.setupUi(
-            self.dialog, list(self.dataset.columns), categorical, minMax, self
+            dialog,
+            list(self.dataset.columns),
+            category_columns,
+            min_max,
+            self,
+            self.retrieve_data_from_child,
         )
-        self.dialog.show()
+        dialog.show()
 
-    def createPlots(self, colName, minVal, maxVal, categorcal_col=""):
-        categorical = categorcal_col != ""
-
-        cond1 = self.dataset[colName] >= minVal
-        cond2 = self.dataset[colName] <= maxVal
-
-        cur_data = self.dataset[cond1 & cond2].reset_index(drop=True)
-
-        h = 6
-        w = 12
-        plt.figure(1, figsize=(1000, 1000), dpi=1)
-
-        temp = self.temp_dir
-
+    def retrieve_data_from_child(self, settings: PlotSettings):
         self.is_plots_in_progress = True
 
-        if categorical:
-            categories = sorted(list(self.dataset[categorcal_col].unique()))
-            categories_items = [f"{colName}:{categorcal_col}:{x}" for x in categories]
-            self.plots_combo_box.addItems(categories_items)
-            self.plots_combo_box.setEnabled(True)
-            self.plots_combo_box.setCurrentIndex(
-                self.plots_combo_box.count() - len(categories)
-            )
+        plot_creator = PlotCreator(
+            self.model,
+            self.dataset,
+            settings.column,
+            settings.min_value,
+            settings.max_value,
+        )
 
-            for i in range(len(categories)):
-                plt.clf()
-
-                cond3 = self.dataset[categorcal_col] == categories[i]
-
-                cur_data = self.dataset[cond1 & cond2 & cond3].reset_index(drop=True)
-
-                name = categories_items[i].replace(":", "")
-
-                plot_lt = plot_top5_centered_importance(
-                    self.model, cur_data, colName, True
-                )
-                fig_lt = plot_lt.get_figure()
-                fig_lt.set_size_inches(w, h)
-                fig_lt.savefig(temp.name + f"\\img1{name}.svg", bbox_inches="tight")
-                fig_lt.savefig(
-                    temp.name + f"\\img1{name}.png", bbox_inches="tight", format="png"
-                )
-                plt.clf()
-                #
-                if colName == categorcal_col:
-                    plot_lb = plot_ice_plot(
-                        self.model,
-                        self.dataset[cond1 & cond2].reset_index(drop=True),
-                        colName,
-                        True,
-                    )
-                else:
-                    plot_lb = plot_ice_plot(self.model, cur_data, colName, True)
-                fig_lb = plot_lb.get_figure()
-                fig_lb.set_size_inches(w, h)
-                fig_lb.savefig(temp.name + f"\\img2{name}.svg", bbox_inches="tight")
-                fig_lb.savefig(
-                    temp.name + f"\\img2{name}.png", bbox_inches="tight", format="png"
-                )
-                plt.clf()
-
-                plot_rt = plot_top5_centered_importance(self.model, cur_data, colName)
-                fig_rt = plot_rt.get_figure().figure
-                fig_rt.set_size_inches(w, h)
-                fig_rt.savefig(temp.name + f"\\img0{name}.svg", bbox_inches="tight")
-                fig_rt.savefig(
-                    temp.name + f"\\img0{name}.png", bbox_inches="tight", format="png"
-                )
-                plt.clf()
-                #
-                if colName == categorcal_col:
-                    plot_rb = plot_ice_plot(
-                        self.model,
-                        self.dataset[cond1 & cond2].reset_index(drop=True),
-                        colName,
-                    )
-                else:
-                    plot_rb = plot_ice_plot(self.model, cur_data, colName)
-                fig_rb = plot_rb.get_figure().figure
-                fig_rb.set_size_inches(w, h)
-                fig_rb.savefig(temp.name + f"\\img3{name}.svg", bbox_inches="tight")
-                fig_rb.savefig(
-                    temp.name + f"\\img3{name}.png", bbox_inches="tight", format="png"
-                )
-                plt.clf()
-
-            self.show_grath(
-                self.plots_combo_box.itemText(
-                    self.plots_combo_box.count() - len(categories)
-                ).replace(":", "")
-            )
-
+        if settings.category_column:
+            full_paths = plot_creator.plot_category_plots(settings.category_column)
+            self.__save_category_paths(full_paths, settings)
         else:
-            self.plots_combo_box.addItems([colName])
-            self.plots_combo_box.setEnabled(True)
-            self.plots_combo_box.setCurrentIndex(self.plots_combo_box.count() - 1)
-
-            plt.clf()
-            plot_lt = plot_top5_centered_importance(self.model, cur_data, colName, True)
-            fig_lt = plot_lt.get_figure()
-            fig_lt.set_size_inches(w, h)
-            fig_lt.savefig(temp.name + f"\\img1{colName}.svg", bbox_inches="tight")
-            fig_lt.savefig(
-                temp.name + f"\\img1{colName}.png", bbox_inches="tight", format="png"
-            )
-            plt.clf()
-
-            self.statusBar().showMessage("1")
-            print("1")
-
-            plot_lb = plot_ice_plot(self.model, cur_data, colName, True)
-            fig_lb = plot_lb.get_figure()
-            fig_lb.set_size_inches(w, h)
-            fig_lb.savefig(temp.name + f"\\img2{colName}.svg", bbox_inches="tight")
-            fig_lb.savefig(
-                temp.name + f"\\img2{colName}.png", bbox_inches="tight", format="png"
-            )
-            plt.clf()
-            self.statusBar().showMessage("2")
-            print("2")
-
-            plot_rt = plot_top5_centered_importance(self.model, cur_data, colName)
-            fig_rt = plot_rt.get_figure().figure
-            fig_rt.set_size_inches(w, h)
-            fig_rt.savefig(temp.name + f"\\img0{colName}.svg", bbox_inches="tight")
-            fig_rt.savefig(
-                temp.name + f"\\img0{colName}.png", bbox_inches="tight", format="png"
-            )
-            plt.clf()
-            self.statusBar().showMessage("3")
-            print("3")
-
-            plot_rb = plot_ice_plot(self.model, cur_data, colName)
-            fig_rb = plot_rb.get_figure().figure
-            fig_rb.set_size_inches(w, h)
-            fig_rb.savefig(temp.name + f"\\img3{colName}.svg", bbox_inches="tight")
-            fig_rb.savefig(
-                temp.name + f"\\img3{colName}.png", bbox_inches="tight", format="png"
-            )
-            plt.clf()
-            self.statusBar().showMessage("5")
-            print("4")
-
-            self.show_grath(colName)
+            paths = plot_creator.plot_regular_plots()
+            self.__save_regular_paths(paths, settings)
 
         self.is_plots_in_progress = False
 
-    def show_grath_by_name(self, i, j, name):
-        temp = self.temp_dir
-        pixmap = PlotContainer(temp.name + f"/img{2 * i + j}{name}.svg")
-        pixmap.setMaximumSize(800, 600)
-        pixmap.setStyleSheet(stylesheet)
-        pixmap.setSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
-        widget_to_replace = self.gridLayout.itemAtPosition(i, j)
-        widget_to_replace.widget().setParent(None)
-        self.gridLayout.addWidget(pixmap, i, j)
+        self.__update_plot_names_in_combo_box()
+        self.switch_plots()
 
-    def show_grath(self, name):
-        temp = self.temp_dir
-        for i in range(0, 2):
-            for j in range(0, 2):
-                pixmap = PlotContainer(temp.name + f"/img{2 * i + j}{name}.svg")
-                pixmap.setMaximumSize(800, 600)
-                pixmap.setStyleSheet(stylesheet)
-                pixmap.setSizePolicy(
-                    QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-                )
-                widget_to_replace = self.gridLayout.itemAtPosition(i, j)
-                widget_to_replace.widget().setParent(None)
-                self.gridLayout.addWidget(pixmap, i, j)
+    def __save_category_paths(
+        self, full_paths: list[[list[str]]], settings: PlotSettings
+    ) -> None:
+        name = self.__get_name_for_settings(settings)
+        for index, path in enumerate(full_paths, start=1):
+            self.__paths[f"{name} {index}"] = path
+
+    def __save_regular_paths(self, paths: list[str], settings: PlotSettings) -> None:
+        name = self.__get_name_for_settings(settings)
+        self.__paths[name] = paths
+
+    def __get_name_for_settings(self, settings: PlotSettings) -> str:
+        name = f"Колонка {settings.column} от {settings.min_value} и до {settings.min_value}"
+
+        if settings.catrgory_column:
+            name += f" по категории {settings.catrgory_column}"
+
+        return name
+
+    def __update_plot_names_in_combo_box(self):
+        plot_names = list[self.__paths.keys()]
+
+        self.plots_combo_box.addItems(plot_names)
+        self.plots_combo_box.setEnabled(True)
+        self.plots_combo_box.setCurrentIndex(len(plot_names) - 1)
+
+    def show_plots(self, plots_name: str):
+        paths = self.__paths[plots_name]
+        indexes = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        for path, position in zip(paths, indexes):
+            pixmap = PlotContainer(path)
+            pixmap.setMaximumSize(800, 600)
+            pixmap.setStyleSheet(stylesheet)
+            pixmap.setSizePolicy(
+                QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+            )
+            widget_to_replace = self.gridLayout.itemAtPosition(*position)
+            widget_to_replace.widget().setParent(None)
+            self.gridLayout.addWidget(pixmap, *position)

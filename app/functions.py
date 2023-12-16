@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 import shap
 
-colors = ["brown", "teal", "blue", "coral", "limegreen"]
+from constants import colors
 
 
-def find_categorical(data):
+def find_category_columns(data):
     data_copy = data.copy()
     categorical = []
 
