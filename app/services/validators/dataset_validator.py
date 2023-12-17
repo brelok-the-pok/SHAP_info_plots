@@ -1,8 +1,8 @@
 from typing import Any
 from pandas import DataFrame
+from app.services.validators.base_validator import BaseValidator
 
 
-class DatasetValidator:
-    @staticmethod
-    def is_valid(dataset: Any) -> bool:
-        return isinstance(dataset, DataFrame)
+class DatasetValidator(BaseValidator):
+    def is_valid(self, obj: Any) -> bool:
+        return isinstance(obj, DataFrame)
