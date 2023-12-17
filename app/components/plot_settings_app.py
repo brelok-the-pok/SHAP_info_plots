@@ -1,34 +1,36 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
+    QAction,
+    QApplication,
+    QFileDialog,
+    QGraphicsView,
     QMainWindow,
     QTextEdit,
-    QAction,
-    QFileDialog,
-    QApplication,
-    QGraphicsView,
 )
+from app.schemes.plot_settings_app import PlotSettings
+from app.constants import PLOT_SETTINGS_ERROR_MESSAGE
 
 
 class PlotDataDialog(QMainWindow):
-    def setupUi(self, Dialog, columns, categorical, minNmax, owner):
-        self.dialog = Dialog
-        self.minMax = minNmax
+    def setupUi(self, dialog, columns, categorical, min_max, owner, callback_function):
+        self.dialog = dialog
+        self.minMax = min_max
         self.columns = columns
         self.categorical = categorical
         self.owner = owner
+        self.callback_function = callback_function
 
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(320, 191)
+        dialog.resize(460, 200)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
         )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(Dialog.sizePolicy().hasHeightForWidth())
-        Dialog.setSizePolicy(sizePolicy)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
+        sizePolicy.setHeightForWidth(dialog.sizePolicy().hasHeightForWidth())
+        dialog.setSizePolicy(sizePolicy)
+        self.verticalLayout = QtWidgets.QVBoxLayout(dialog)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.labelTop = QtWidgets.QLabel(Dialog)
+        self.labelTop = QtWidgets.QLabel(dialog)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
         )
@@ -40,13 +42,13 @@ class PlotDataDialog(QMainWindow):
         self.labelTop.setWordWrap(True)
         self.labelTop.setObjectName("labelTop")
         self.verticalLayout.addWidget(self.labelTop)
-        self.comboBoxVar1 = QtWidgets.QComboBox(Dialog)
+        self.comboBoxVar1 = QtWidgets.QComboBox(dialog)
         self.comboBoxVar1.setObjectName("comboBoxVar1")
         self.comboBoxVar1.addItem("")
         self.comboBoxVar1.addItem("")
         self.comboBoxVar1.addItem("")
         self.verticalLayout.addWidget(self.comboBoxVar1)
-        self.checkBoxCategorical = QtWidgets.QCheckBox(Dialog)
+        self.checkBoxCategorical = QtWidgets.QCheckBox(dialog)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
         )
@@ -58,7 +60,7 @@ class PlotDataDialog(QMainWindow):
         self.checkBoxCategorical.setSizePolicy(sizePolicy)
         self.checkBoxCategorical.setObjectName("checkBoxCategorical")
         self.verticalLayout.addWidget(self.checkBoxCategorical)
-        self.comboBoxCategoricalVar = QtWidgets.QComboBox(Dialog)
+        self.comboBoxCategoricalVar = QtWidgets.QComboBox(dialog)
         self.comboBoxCategoricalVar.setEnabled(False)
         self.comboBoxCategoricalVar.setObjectName("comboBoxCategoricalVar")
         self.comboBoxCategoricalVar.addItem("")
@@ -67,26 +69,26 @@ class PlotDataDialog(QMainWindow):
         self.verticalLayout.addWidget(self.comboBoxCategoricalVar)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.labelMinValue = QtWidgets.QLabel(Dialog)
+        self.labelMinValue = QtWidgets.QLabel(dialog)
         self.labelMinValue.setObjectName("labelMinValue")
         self.horizontalLayout_2.addWidget(self.labelMinValue)
-        self.doubleSpinBoxMinValue = QtWidgets.QDoubleSpinBox(Dialog)
+        self.doubleSpinBoxMinValue = QtWidgets.QDoubleSpinBox(dialog)
         self.doubleSpinBoxMinValue.setObjectName("doubleSpinBoxMinValue")
         self.horizontalLayout_2.addWidget(self.doubleSpinBoxMinValue)
-        self.labelMaxValue = QtWidgets.QLabel(Dialog)
+        self.labelMaxValue = QtWidgets.QLabel(dialog)
         self.labelMaxValue.setObjectName("labelMaxValue")
         self.horizontalLayout_2.addWidget(self.labelMaxValue)
-        self.doubleSpinBoxMaxValue = QtWidgets.QDoubleSpinBox(Dialog)
+        self.doubleSpinBoxMaxValue = QtWidgets.QDoubleSpinBox(dialog)
 
         self.doubleSpinBoxMaxValue.setObjectName("doubleSpinBoxMaxValue")
         self.horizontalLayout_2.addWidget(self.doubleSpinBoxMaxValue)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.pushButtonAcceptPlot = QtWidgets.QPushButton(Dialog)
+        self.pushButtonAcceptPlot = QtWidgets.QPushButton(dialog)
         self.pushButtonAcceptPlot.setObjectName("pushButtonAcceptPlot")
         self.horizontalLayout.addWidget(self.pushButtonAcceptPlot)
-        self.pushButtonCancelPlot = QtWidgets.QPushButton(Dialog)
+        self.pushButtonCancelPlot = QtWidgets.QPushButton(dialog)
         self.pushButtonCancelPlot.setObjectName("pushButtonCancelPlot")
         self.horizontalLayout.addWidget(self.pushButtonCancelPlot)
         self.horizontalLayout.setStretch(0, 4)
@@ -99,86 +101,73 @@ class PlotDataDialog(QMainWindow):
         self.comboBoxCategoricalVar.clear()
         self.comboBoxCategoricalVar.addItems(categorical[0 : len(categorical) - 1])
 
-        self.comboBoxVar1.currentIndexChanged.connect(self.changeMinMax)
+        self.comboBoxVar1.currentIndexChanged.connect(self.change_boundaries)
 
-        print(self.comboBoxVar1.currentIndex())
+        self.pushButtonCancelPlot.clicked.connect(self.close_button)
+        self.pushButtonAcceptPlot.clicked.connect(self.send_plot_data)
 
-        self.pushButtonCancelPlot.clicked.connect(self.closeButton)
-        self.pushButtonAcceptPlot.clicked.connect(self.sendPlotData)
+        self.changeSpinBoxes(min_max[0][0], min_max[1][0])
 
-        self.doubleSpinBoxMinValue.valueChanged.connect(
-            self.doubleSpinBoxMinValueValueChanged
-        )
-        self.doubleSpinBoxMaxValue.valueChanged.connect(
-            self.doubleSpinBoxMaxValueValueChanged
-        )
-
-        self.changeSpinBoxes(minNmax[0][0], minNmax[1][0])
-
-        self.retranslateUi(Dialog)
+        self.retranslateUi(dialog)
         self.checkBoxCategorical.toggled["bool"].connect(
             self.comboBoxCategoricalVar.setEnabled
         )
 
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(dialog)
 
-    def doubleSpinBoxMinValueValueChanged(self):
-        print("A")
-        pass
+    def changeSpinBoxes(self, min_value, max_value):
+        self.doubleSpinBoxMinValue.setMinimum(min_value)
+        self.doubleSpinBoxMinValue.setMaximum(max_value)
+        self.doubleSpinBoxMinValue.setValue(min_value)
 
-    def doubleSpinBoxMaxValueValueChanged(self):
-        print("B")
-        pass
+        self.doubleSpinBoxMaxValue.setMinimum(min_value)
+        self.doubleSpinBoxMaxValue.setMaximum(max_value)
+        self.doubleSpinBoxMaxValue.setValue(max_value)
 
-    def changeSpinBoxes(self, min, max):
-        self.doubleSpinBoxMinValue.setMinimum(min)
-        self.doubleSpinBoxMinValue.setMaximum(max)
-        self.doubleSpinBoxMinValue.setValue(min)
+    def change_boundaries(self):
+        column_index = self.comboBoxVar1.currentIndex()
+        min_value = self.minMax[0][column_index]
+        max_value = self.minMax[1][column_index]
+        self.changeSpinBoxes(min_value, max_value)
 
-        self.doubleSpinBoxMaxValue.setMinimum(min)
-        self.doubleSpinBoxMaxValue.setMaximum(max)
-        self.doubleSpinBoxMaxValue.setValue(max)
-
-    def changeMinMax(self):
-        i = self.comboBoxVar1.currentIndex()
-        min = self.minMax[0][i]
-        max = self.minMax[1][i]
-        self.changeSpinBoxes(min, max)
-
-    def closeButton(self):
+    def close_button(self):
         self.dialog.close()
 
-    def sendPlotData(self):
-        colName = self.comboBoxVar1.currentText()
-        minVal = self.doubleSpinBoxMinValue.value()
-        maxVal = self.doubleSpinBoxMaxValue.value()
-        categorical = self.checkBoxCategorical.isChecked()
-        if categorical:
-            categoricalColl = self.comboBoxCategoricalVar.currentText()
-            if categoricalColl == colName:
-                msg = QtWidgets.QMessageBox()
-                msg.setIcon(QtWidgets.QMessageBox.Warning)
-                msg.setWindowTitle("Ошибка")
-                msg.setText(
-                    "Именна переменной варьирования и категориальной переменной не могут совпадать"
-                )
-                msg.show()
-                msg.exec_()
-                return
-        else:
-            categoricalColl = ""
+    def send_plot_data(self):
+        column = self.comboBoxVar1.currentText()
+        min_value = self.doubleSpinBoxMinValue.value()
+        max_value = self.doubleSpinBoxMaxValue.value()
+
+        is_category_plot = self.checkBoxCategorical.isChecked()
+        category_column = (
+            self.comboBoxCategoricalVar.currentText() if is_category_plot else ""
+        )
+        if is_category_plot and category_column == column:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setWindowTitle("Ошибка")
+            msg.setText(PLOT_SETTINGS_ERROR_MESSAGE)
+            msg.show()
+            msg.exec_()
+            return
+
         self.dialog.hide()
-        self.owner.createPlots(colName, minVal, maxVal, categoricalColl)
+
+        settings = PlotSettings(
+            column=column,
+            min_value=min_value,
+            max_value=max_value,
+            category_column=category_column,
+        )
+        self.callback_function(settings)
+
         self.dialog.close()
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        dialog.setWindowTitle("Параметры графиков")
         self.labelTop.setText(
-            _translate(
-                "Dialog",
-                "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных",
-            )
+            "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных"
         )
 
         self.checkBoxCategorical.setText(_translate("Dialog", "По категориям"))

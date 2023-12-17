@@ -1,0 +1,37 @@
+# PynSource Version 1.2
+{'type':'meta', 'info1':'Lorem ipsum dolor sit amet, consectetur adipiscing elit is latin. Comments are saved.'}
+{'type':'umlshape', 'id':'CreatedPlotsSaver', 'x':426, 'y':1009, 'width':180, 'height':64, 'attrs': '', 'meths': 'save_plots'}
+{'type':'umlshape', 'id':'DataHelper', 'x':589, 'y':427, 'width':178, 'height':80, 'attrs': '', 'meths': 'find_category_columns|get_dataset_min_max'}
+{'type':'umlshape', 'id':'DatasetRendered', 'x':153, 'y':974, 'width':250, 'height':138, 'attrs': '__dataset|__term_dir', 'meths': '__init__|get_rendered_data_layout|get_rendered_info_plots_layout'}
+{'type':'umlshape', 'id':'DatasetValidator', 'x':269, 'y':888, 'width':170, 'height':64, 'attrs': '', 'meths': 'is_valid'}
+{'type':'umlshape', 'id':'MainApp', 'x':633, 'y':531, 'width':266, 'height':570, 'attrs': '__data_helper|__dataset|__model|__paths|__pickle_service|__qt_helper|dataset|is_dataset_loaded|is_model_loaded|is_plots_in_progress|model|temp_dir|ui', 'meths': '__get_name_for_settings|__init__|__save_category_paths|__save_regular_paths|__update_plot_names_in_combo_box|closeEvent|create_columns|create_rows|debug_start|make_plots|open_dataset|open_model|open_saved_file|retrieve_data_from_child|save_file|save_plots|show_data_status|show_plots|switch_plots'}
+{'type':'umlshape', 'id':'PlotDataDialog', 'x':926, 'y':818, 'width':186, 'height':458, 'attrs': 'callback_function|categorical|checkBoxCategorical|columns|comboBoxCategoricalVar|comboBoxVar1|dialog|doubleSpinBoxMaxValue|doubleSpinBoxMinValue|horizontalLayout|horizontalLayout_2|labelMaxValue|labelMinValue|labelTop|minMax|owner|pushButtonAcceptPlot|pushButtonCancelPlot|verticalLayout', 'meths': 'changeSpinBoxes|change_boundaries|close_button|retranslateUi|send_plot_data|setupUi'}
+{'type':'umlshape', 'id':'PlotSettings', 'x':705, 'y':1127, 'width':130, 'height':112, 'attrs': 'category_column|column|max_value|min_value', 'meths': ''}
+{'type':'umlshape', 'id':'QtHelper', 'x':368, 'y':385, 'width':178, 'height':138, 'attrs': '__cur_dir', 'meths': '__init__|get_existing_dir_path|get_path_to_open_file|get_path_to_save_file'}
+{'type':'umlshape', 'id':'PickleService', 'x':423, 'y':667, 'width':186, 'height':202, 'attrs': '__dataset_validator|__model_validator|__reader|__writer', 'meths': '__init__|get_dataset|get_dataset_and_model|get_model|save_dataset_and_model'}
+{'type':'umlshape', 'id':'MostImportantColumns', 'x':1234, 'y':707, 'width':210, 'height':80, 'attrs': 'index|name', 'meths': ''}
+{'type':'umlshape', 'id':'ModelExplainer', 'x':1140, 'y':865, 'width':282, 'height':346, 'attrs': '__column_to_vary|__dataset|__explainer|__importance|__model|__most_important_columns|__predicts', 'meths': '__calculate_importance|__calculate_most_important_columns|__get_predict_values|__get_shap_values|__get_variables_to_vary|__init__|calculate_for_dataset|get_centered_importance|get_ice_importance|get_ice_predictions|get_n_most_important_columns'}
+{'type':'umlshape', 'id':'ModelValidator', 'x':460, 'y':892, 'width':150, 'height':64, 'attrs': '', 'meths': 'is_valid'}
+{'type':'umlshape', 'id':'PickleReader', 'x':274, 'y':779, 'width':130, 'height':64, 'attrs': '', 'meths': 'read_pickled'}
+{'type':'umlshape', 'id':'DatasetModelMonoObject', 'x':298, 'y':560, 'width':230, 'height':80, 'attrs': 'dataset|model', 'meths': ''}
+{'type':'umlshape', 'id':'PickleWriter', 'x':275, 'y':682, 'width':130, 'height':64, 'attrs': '', 'meths': 'write_pickled'}
+{'type':'umlshape', 'id':'PlotContainer', 'x':461, 'y':1083, 'width':140, 'height':106, 'attrs': '_pixmap', 'meths': '__init__|resizeEvent'}
+{'type':'umlshape', 'id':'PlotCreator', 'x':928, 'y':416, 'width':290, 'height':378, 'attrs': '__column|__dataset|__default_height|__default_width|__explainer|__model|__temp_dir', 'meths': '__get_category_dataset|__get_empty_plot|__get_ice_importance_plot|__get_ice_predictions_plot|__get_top5_centered_importance_plot|__init__|__make_plots_for_dataset|__plot_ice_plot|__save_fig|__set_fig_settings|__set_plot_settings|plot_category_plots|plot_regular_plots'}
+{'type':'edge', 'id':'DataHelper_to_MainApp', 'source':'DataHelper', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PlotSettings_to_MainApp', 'source':'PlotSettings', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'QtHelper_to_MainApp', 'source':'QtHelper', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PickleService_to_MainApp', 'source':'PickleService', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'DatasetModelMonoObject_to_PickleService', 'source':'DatasetModelMonoObject', 'target':'PickleService', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PickleReader_to_PickleService', 'source':'PickleReader', 'target':'PickleService', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PickleWriter_to_PickleService', 'source':'PickleWriter', 'target':'PickleService', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'ModelValidator_to_PickleService', 'source':'ModelValidator', 'target':'PickleService', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'DatasetValidator_to_PickleService', 'source':'DatasetValidator', 'target':'PickleService', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'ModelExplainer_to_PlotCreator', 'source':'ModelExplainer', 'target':'PlotCreator', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PlotContainer_to_MainApp', 'source':'PlotContainer', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PlotSettings_to_PlotContainer', 'source':'PlotSettings', 'target':'PlotContainer', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'MostImportantColumns_to_ModelExplainer', 'source':'MostImportantColumns', 'target':'ModelExplainer', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'MostImportantColumns_to_PlotCreator', 'source':'MostImportantColumns', 'target':'PlotCreator', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'DatasetRendered_to_MainApp', 'source':'DatasetRendered', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PlotDataDialog_to_MainApp', 'source':'PlotDataDialog', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'PlotCreator_to_MainApp', 'source':'PlotCreator', 'target':'MainApp', 'uml_edge_type': 'composition'}
+{'type':'edge', 'id':'CreatedPlotsSaver_to_MainApp', 'source':'CreatedPlotsSaver', 'target':'MainApp', 'uml_edge_type': 'composition'}
