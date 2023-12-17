@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QTextEdit,
 )
 from app.schemes.plot_settings_app import PlotSettings
+from app.constants import PLOT_SETTINGS_ERROR_MESSAGE
 
 
 class PlotDataDialog(QMainWindow):
@@ -145,9 +146,7 @@ class PlotDataDialog(QMainWindow):
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setWindowTitle("Ошибка")
-            msg.setText(
-                "Именна переменной варьирования и категориальной переменной не могут совпадать"
-            )
+            msg.setText(PLOT_SETTINGS_ERROR_MESSAGE)
             msg.show()
             msg.exec_()
             return

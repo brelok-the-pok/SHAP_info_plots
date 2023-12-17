@@ -3,7 +3,7 @@ from xgboost import XGBClassifier
 from app.schemes.pickled_data import DatasetModelMonoObject
 from app.services.validators import DatasetValidator, ModelValidator
 from app.services.pickle_serivces import PickleWriter, PickleReader
-from app.constants import model_load_error, dataset_load_error
+from app.constants import MODEL_LOAD_ERROR, DATASET_LOAD_ERROR_MESSAGE
 
 
 class PickleService:
@@ -18,7 +18,7 @@ class PickleService:
         obj = self.__reader.read_pickled(path)
 
         if not self.__dataset_validator.is_valid(obj):
-            raise Exception(dataset_load_error)
+            raise Exception(DATASET_LOAD_ERROR_MESSAGE)
 
         return obj
 
@@ -26,7 +26,7 @@ class PickleService:
         obj: XGBClassifier = self.__reader.read_pickled(path)
 
         if not self.__model_validator.is_valid(obj):
-            raise Exception(model_load_error)
+            raise Exception(MODEL_LOAD_ERROR)
 
         return obj  # type: ignore
 
@@ -34,10 +34,10 @@ class PickleService:
         obj: XGBClassifier = self.__reader.read_pickled(path)
 
         if not self.__dataset_validator.is_valid(obj[1]):
-            raise Exception(dataset_load_error)
+            raise Exception(DATASET_LOAD_ERROR_MESSAGE)
 
         if not self.__model_validator.is_valid(obj[0]):
-            raise Exception(dataset_load_error)
+            raise Exception(DATASET_LOAD_ERROR_MESSAGE)
 
         return DatasetModelMonoObject(dataset=obj[1], model=obj[0])
 

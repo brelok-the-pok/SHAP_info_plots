@@ -31,6 +31,7 @@ class PlotCreator:
         column: str,
         min_value: float,
         max_value: float,
+        temp_dir: tempfile.TemporaryDirectory,
     ):
         cond1 = dataset[column] >= min_value
         cond2 = dataset[column] <= max_value
@@ -39,7 +40,7 @@ class PlotCreator:
         self.__explainer = ModelExplainer(self.__model)
         self.__dataset = dataset[cond1 & cond2].reset_index(drop=True)
         self.__column = column
-        self.__temp_dir = tempfile.TemporaryDirectory()
+        self.__temp_dir = temp_dir
 
         self.__default_height = PLOT_HEIGHT
         self.__default_width = PLOT_WIDTH
@@ -90,7 +91,7 @@ class PlotCreator:
         fig.set_size_inches(self.__default_width, self.__default_height)
 
     def __save_fig(self, fig: Any, fig_name: str) -> str:
-        path = self.__temp_dir.name + f"\\{fig_name}.svg"
+        path = self.__temp_dir.name + f"\\{fig_name}"
 
         fig.savefig(f"{path}.svg", bbox_inches="tight")
         fig.savefig(

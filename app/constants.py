@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
 
 
-stylesheet = """
+STYLESHEET = """
     border-bottom-width: 1px;
     border-bottom-style: solid;
     border-top-width: 1px;
@@ -27,23 +27,23 @@ FIG_SIZE = (FIG_WIDTH, FIG_HEIGHT)
 DPI = 2
 
 
-save_complete_message = "Сохранение завершено"
+SAVE_COMPLETE_MESSAGE = "Сохранение завершено"
 
-dataset_load_error = "Загруженный объект не является выборкой"
-model_load_error = "Загруженный объект не является выборкой"
+DATASET_LOAD_ERROR_MESSAGE = "Загруженный объект не является выборкой"
+MODEL_LOAD_ERROR = "Загруженный объект не является выборкой"
 
-data_is_awaited_message = "Ожидается загрузка датасета и модели"
-only_model_loaded_message = "Загрузка модели произведена. Ожидается загрузка выборки"
-only_dataset_loaded_message = "Загрузка датасета произведена. Ожидается загрузка модели"
-dataset_and_model_loaded_message = "Датасет и модель загружены"
+DATA_IS_AWAITED_MESSAGE = "Ожидается загрузка датасета и модели"
+ONLY_MODEL_LOADED_MESSAGE = "Загрузка модели произведена. Ожидается загрузка выборки"
+ONLY_DATASET_LOADED_MESSAGE = "Загрузка датасета произведена. Ожидается загрузка модели"
+DATASET_AND_MODEL_LOADED_MESSAGE = "Датасет и модель загружены"
 
-no_plots_message = "Для сохранения постройте графики"
+NO_PLOTS_MESSAGE = "Для сохранения постройте графики"
 
-debug_file_path = "../data/obj_v2"
+DEBUG_FILE_PATH = "../data/obj_v2"
 
 
-qt_color_white = QtGui.QColor(255, 255, 255)
-qt_color_beige = QtGui.QColor(235, 204, 153)
+QT_COLOR_WHITE = QtGui.QColor(255, 255, 255)
+QT_COLOR_BEIGE = QtGui.QColor(235, 204, 153)
 
 
 TOP5_CENTERED_IMPORTANCE_TITLE = "Центрированный график изменения важности переменных"
@@ -54,4 +54,8 @@ ICE_IMPORTANCE_TITLE = "с-ICE график изменения важности 
 ICE_PREDICTIONS_Y_LABEL = "Вероятность удачного исхода при изменении переменной {}"
 ICE_PREDICTIONS_TITLE = (
     "с-ICE график вероятности удачного исхода при изменении переменной {}"
+)
+
+PLOT_SETTINGS_ERROR_MESSAGE = (
+    "Именна переменной варьирования и категориальной переменной не могут совпадать"
 )
