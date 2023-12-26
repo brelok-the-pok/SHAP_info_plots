@@ -1,0 +1,7 @@
+PyQt5~=5.15.9
+pydantic~=2.5.2
+pandas~=2.0.3
+xgboost~=1.7.6
+numpy~=1.24.4
+shap~=0.42.1
+matplotlib~=3.7.2
