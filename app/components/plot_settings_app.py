@@ -12,12 +12,11 @@ from app.constants import PLOT_SETTINGS_ERROR_MESSAGE
 
 
 class PlotDataDialog(QMainWindow):
-    def setupUi(self, dialog, columns, categorical, min_max, owner, callback_function):
+    def setupUi(self, dialog, columns, categorical, min_max, callback_function):
         self.dialog = dialog
         self.minMax = min_max
         self.columns = columns
         self.categorical = categorical
-        self.owner = owner
         self.callback_function = callback_function
 
         dialog.resize(460, 200)

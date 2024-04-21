@@ -1,7 +1,5 @@
 import tempfile
-from typing import Any
 
-import matplotlib.pyplot as plt
 from app.constants import (
     STYLESHEET,
     DEBUG_FILE_PATH,
@@ -13,6 +11,7 @@ from app.constants import (
     NO_PLOTS_MESSAGE,
     FIG_WIDTH,
     FIG_HEIGHT,
+    LLM_SYSTEM_PROMPT_FOR_USER
 )
 from app.schemes.plot_settings_app import PlotSettings
 from app.services.created_plots_saver import CreatedPlotsSaver
@@ -24,9 +23,14 @@ from PyQt5 import QtCore, QtWidgets, uic
 from app.schemes.pickled_data import DatasetModelMonoObject
 from app.services.qt_helper import QtHelper
 from app.components.plot_settings_app import PlotDataDialog
+from app.components.ai_settings_app import AISettingDialog
 from app.components.plot_container import PlotContainer
 from app.services.dataset_renderer import DatasetRendered
 from app.services.plot_creator import PlotCreator
+from app.services.llm_controller import LLMController
+from app.services.simple_tree_model_fitter import SimpleTreeModelFitter
+from app.services.model_rules_aggregator import ModelRulesAggregator
+from app.components.text_chat_scroll_widget import TextChatScrollArea
 
 
 class MainApp(QtWidgets.QMainWindow):
@@ -37,7 +41,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.__pickle_service = PickleService()
         self.__data_helper = DataHelper()
 
-        uic.loadUi("../ui/main.ui", self)
+        uic.loadUi("../ui/main2.ui", self)
 
         self.open_file_action.setStatusTip("Открыть файл проекта")
         self.open_file_action.triggered.connect(self.open_saved_file)
@@ -54,6 +58,16 @@ class MainApp(QtWidgets.QMainWindow):
         self.save_plot_action.triggered.connect(self.save_plots)
 
         self.push_button_plot.clicked.connect(self.make_plots)
+
+        self.user_input_button.clicked.connect(self.send_chat_request)
+        self.llm_init_button.clicked.connect(self.init_llm_button)
+
+        self._widget = QtWidgets.QWidget()
+        self._layout = self.horizontalLayout_8
+        self._scroll = TextChatScrollArea()
+        self._layout.addWidget(self._scroll)
+
+        self._widget.setLayout(self._layout)
 
         self.plots_combo_box.currentIndexChanged.connect(self.switch_plots)
 
@@ -196,7 +210,6 @@ class MainApp(QtWidgets.QMainWindow):
             list(self.dataset.columns),
             category_columns,
             min_max,
-            self,
             self.retrieve_data_from_child,
         )
         dialog.show()
@@ -266,3 +279,42 @@ class MainApp(QtWidgets.QMainWindow):
             widget_to_replace = self.gridLayout.itemAtPosition(*position)
             widget_to_replace.widget().setParent(None)
             self.gridLayout.addWidget(pixmap, *position)
+
+    def send_chat_request(self):
+        text = self.user_input_widget.document().toPlainText()
+        if text:
+            self._scroll.add_text(text)
+
+            response = self.llm_controller.get_answer(text)
+            self._scroll.add_text(response)
+
+            scroll_bar = self._scroll.verticalScrollBar()
+            scroll_bar.setValue(scroll_bar.maximum() + 500)
+
+    def init_llm_button(self):
+        if not self.is_dataset_loaded and self.is_model_loaded:
+            self.show_data_status()
+
+        dialog = QtWidgets.QDialog()
+        self.ui = AISettingDialog()
+        self.ui.setupUi(dialog, self._init_llm_button_callback)
+        dialog.show()
+
+    def _init_llm_button_callback(self, temperature, depth):
+        fitter = SimpleTreeModelFitter(self.model, self.dataset, depth)
+        tree = fitter.get_simple_tree()
+        columns = fitter.get_X().columns
+
+        aggregator = ModelRulesAggregator(tree, columns)
+        rules = aggregator.get_formatted_rules()
+
+        self.llm_controller = LLMController(temperature)
+        self.proba_text.setText(rules)
+        self._scroll.add_text(LLM_SYSTEM_PROMPT_FOR_USER)
+
+        response = self.llm_controller.get_answer(rules)
+        self._scroll.add_text(response)
+
+
+
+
