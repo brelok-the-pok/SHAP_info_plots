@@ -1,13 +1,8 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import (
-    QAction,
-    QApplication,
-    QFileDialog,
-    QGraphicsView,
     QMainWindow,
-    QTextEdit,
 )
-from app.schemes.plot_settings_app import PlotSettings
+from core.schemes import PlotSettings
 from app.constants import PLOT_SETTINGS_ERROR_MESSAGE
 
 

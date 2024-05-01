@@ -8,8 +8,7 @@ from matplotlib import pyplot as plt
 from pandas import DataFrame
 from app.constants import PLOT_HEIGHT, PLOT_WIDTH, TOP5_CENTERED_IMPORTANCE_TITLE
 from xgboost import XGBClassifier
-import shap
-from app.services.model_explainer import ModelExplainer
+from core.services.model_explainer import ModelExplainer
 from app.constants import (
     COLORS,
     FONT_SIZE,
@@ -17,7 +16,6 @@ from app.constants import (
     DPI,
     FIG_COUNT,
     ICE_PREDICTIONS_TITLE,
-    ICE_PREDICTIONS_Y_LABEL,
     ICE_IMPORTANCE_TITLE,
     ICE_IMPORTANCE_Y_LABEL,
 )

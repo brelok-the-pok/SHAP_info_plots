@@ -12,14 +12,20 @@ class QtHelper:
     ) -> Optional[str]:
         file_name = QFileDialog.getOpenFileName(parent, descriptor_name, self.__cur_dir)
 
-        return file_name[0] or None
+        if name := file_name[0]:
+            return name
+        else:
+            return None
 
     def get_path_to_save_file(
         self, parent: QWidget, descriptor_name="Сохранить файл"
     ) -> Optional[str]:
         file_name = QFileDialog.getSaveFileName(parent, descriptor_name, self.__cur_dir)
 
-        return file_name[0] or None
+        if name := file_name[0]:
+            return name
+        else:
+            return None
 
     def get_existing_dir_path(
         self, parent: QWidget, descriptor_name="Выбрать дитекторию"

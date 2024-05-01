@@ -2,7 +2,6 @@ import tempfile
 
 from app.constants import (
     STYLESHEET,
-    DEBUG_FILE_PATH,
     DATASET_AND_MODEL_LOADED_MESSAGE,
     DATA_IS_AWAITED_MESSAGE,
     ONLY_DATASET_LOADED_MESSAGE,
@@ -11,25 +10,26 @@ from app.constants import (
     NO_PLOTS_MESSAGE,
     FIG_WIDTH,
     FIG_HEIGHT,
-    LLM_SYSTEM_PROMPT_FOR_USER
+    LLM_SYSTEM_PROMPT_FOR_USER,
 )
-from app.schemes.plot_settings_app import PlotSettings
+from core.schemes import PlotSettings
+from core.debug_starter import DebugStarter
 from app.services.created_plots_saver import CreatedPlotsSaver
-from app.services.data_helper import DataHelper
+from core.services.data_helper import DataHelper
 from pandas import DataFrame
 from xgboost import XGBClassifier
-from app.services.pickle_service import PickleService
+from core.services.pickle_service import PickleService
 from PyQt5 import QtCore, QtWidgets, uic
-from app.schemes.pickled_data import DatasetModelMonoObject
+from core.schemes.pickled_data import DatasetModelMonoObject
 from app.services.qt_helper import QtHelper
 from app.components.plot_settings_app import PlotDataDialog
 from app.components.ai_settings_app import AISettingDialog
 from app.components.plot_container import PlotContainer
 from app.services.dataset_renderer import DatasetRendered
 from app.services.plot_creator import PlotCreator
-from app.services.llm_controller import LLMController
-from app.services.simple_tree_model_fitter import SimpleTreeModelFitter
-from app.services.model_rules_aggregator import ModelRulesAggregator
+from core.services.llm_controller import LLMController
+from core.services.simple_tree_model_fitter import SimpleTreeModelFitter
+from core.services.model_rules_aggregator import ModelRulesAggregator
 from app.components.text_chat_scroll_widget import TextChatScrollArea
 
 
@@ -114,7 +114,10 @@ class MainApp(QtWidgets.QMainWindow):
         self.temp_dir.cleanup()
 
     def debug_start(self):
-        self.open_saved_file(DEBUG_FILE_PATH)
+        debug_starter = DebugStarter("boost")
+        dataset, model = debug_starter.get_dataset_and_model()
+        self.dataset = dataset
+        self.model = model
 
     def show_data_status(self) -> None:
         if self.is_dataset_loaded and self.is_model_loaded:
@@ -314,7 +317,3 @@ class MainApp(QtWidgets.QMainWindow):
 
         response = self.llm_controller.get_answer(rules)
         self._scroll.add_text(response)
-
-
-
-

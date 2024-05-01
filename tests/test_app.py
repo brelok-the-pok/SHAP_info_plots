@@ -1,5 +1,6 @@
-from app.services.pickle_service import PickleService
-from app.services.model_explainer import ModelExplainer
+from core.services.pickle_service import PickleService
+from core.services.model_explainer import ModelExplainer
+
 
 def test_data_load():
     service = PickleService()
@@ -8,6 +9,7 @@ def test_data_load():
 
     assert mono_object.model is not None
     assert mono_object.dataset is not None
+
 
 def test_model_explainer():
     service = PickleService()
@@ -21,6 +23,3 @@ def test_model_explainer():
     assert explainer.get_ice_importance() is not None
     assert explainer.get_ice_predictions() is not None
     assert explainer.get_centered_importance() is not None
-
-
-

@@ -1,6 +1,6 @@
 from typing import Any
 from xgboost import XGBClassifier
-from app.services.validators.base_validator import BaseValidator
+from core.validators.base_validator import BaseValidator
 
 
 class ModelValidator(BaseValidator):

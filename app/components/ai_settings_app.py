@@ -2,14 +2,15 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 
 
-
 class AISettingDialog(QMainWindow):
     def setupUi(self, Dialog, callback_function):
         self.callback_function = callback_function
         self.dialog = Dialog
         Dialog.setObjectName("Dialog")
         Dialog.resize(327, 235)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(Dialog.sizePolicy().hasHeightForWidth())
@@ -17,7 +18,9 @@ class AISettingDialog(QMainWindow):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.labelTop = QtWidgets.QLabel(Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labelTop.sizePolicy().hasHeightForWidth())
@@ -33,10 +36,14 @@ class AISettingDialog(QMainWindow):
         self.comboBoxVar1.addItem("")
         self.verticalLayout_2.addWidget(self.comboBoxVar1)
         self.checkBoxCategorical = QtWidgets.QCheckBox(Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.checkBoxCategorical.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.checkBoxCategorical.sizePolicy().hasHeightForWidth()
+        )
         self.checkBoxCategorical.setSizePolicy(sizePolicy)
         self.checkBoxCategorical.setObjectName("checkBoxCategorical")
         self.verticalLayout_2.addWidget(self.checkBoxCategorical)
@@ -88,9 +95,8 @@ class AISettingDialog(QMainWindow):
         self.pushButtonAcceptPlot.clicked.connect(self.send_settings)
         self.pushButtonCancelPlot.clicked.connect(self.dialog.close)
 
-
         self.retranslateUi(Dialog)
-        self.checkBoxCategorical.toggled['bool'].connect(self.comboBoxCategoricalVar.setEnabled)  # type: ignore
+        self.checkBoxCategorical.toggled["bool"].connect(self.comboBoxCategoricalVar.setEnabled)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def send_settings(self):
@@ -103,8 +109,12 @@ class AISettingDialog(QMainWindow):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Ввод параметров"))
-        self.labelTop.setText(_translate("Dialog",
-                                         "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных"))
+        self.labelTop.setText(
+            _translate(
+                "Dialog",
+                "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных",
+            )
+        )
         self.comboBoxVar1.setItemText(0, _translate("Dialog", "Переменная 1"))
         self.comboBoxVar1.setItemText(1, _translate("Dialog", "Переменная 2"))
         self.comboBoxVar1.setItemText(2, _translate("Dialog", "Переменная 3"))
@@ -112,7 +122,9 @@ class AISettingDialog(QMainWindow):
         self.comboBoxCategoricalVar.setItemText(0, _translate("Dialog", "Переменная 1"))
         self.comboBoxCategoricalVar.setItemText(1, _translate("Dialog", "Переменная 2"))
         self.comboBoxCategoricalVar.setItemText(2, _translate("Dialog", "Переменная 3"))
-        self.labelMinValue.setText(_translate("Dialog", "Темперетура (Больше - креативнее)"))
+        self.labelMinValue.setText(
+            _translate("Dialog", "Темперетура (Больше - креативнее)")
+        )
         self.labelMaxValue.setText(_translate("Dialog", "Глубина"))
         self.pushButtonAcceptPlot.setText(_translate("Dialog", "Запустить"))
         self.pushButtonCancelPlot.setText(_translate("Dialog", "Отмена"))

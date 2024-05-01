@@ -18,8 +18,8 @@ COLORS = ["brown", "teal", "blue", "coral", "limegreen", "pink", "olive", "navy"
 FONT_SIZE = 18
 FIG_COUNT = 1
 
-PLOT_WIDTH = 16
-PLOT_HEIGHT = 10
+PLOT_WIDTH = 12
+PLOT_HEIGHT = 6
 
 FIG_WIDTH = PLOT_WIDTH * 100
 FIG_HEIGHT = PLOT_HEIGHT * 100
@@ -42,8 +42,13 @@ NO_PLOTS_MESSAGE = "Для сохранения постройте график�
 
 DEBUG_FILE_PATH = "../data/obj_v2"
 
-r_w, g_w, b_w = 255, 255, 255
-r_b, g_b, b_b = 235, 204, 153
+r_w = 255
+g_w = 255
+b_w = 255
+
+r_b = 235
+g_b = 204
+b_b = 153
 
 QT_COLOR_WHITE = QtGui.QColor(r_w, g_w, b_w)
 QT_COLOR_BEIGE = QtGui.QColor(r_b, g_b, b_b)
@@ -68,7 +73,7 @@ PLOT_SETTINGS_ERROR_MESSAGE = (
 )
 
 
-TOKEN = "y0_AgAAAAAdy8SG3Xh2A"
+TOKEN = "y0_AgAAAAAdy8jaAATuwQAAAAEB9i4DAADeGpmlxK9DS5qcedkm1T8SG3Xh2A"
 TOKEN_URL = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
 LLM_FOLDER = "b1gqlhmqdst9ejbptsnp"
 LLM_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"

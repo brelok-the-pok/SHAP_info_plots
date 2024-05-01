@@ -1,8 +1,9 @@
 from pandas import DataFrame
 from xgboost import XGBClassifier
-from app.schemes.pickled_data import DatasetModelMonoObject
-from app.services.validators import DatasetValidator, ModelValidator
-from app.services.pickle_serivces import PickleWriter, PickleReader
+from core.schemes.pickled_data import DatasetModelMonoObject
+from core.validators import DatasetValidator, ModelValidator
+from core.services.pickle_writer import PickleWriter
+from core.services.pickle_reader import PickleReader
 from app.constants import MODEL_LOAD_ERROR, DATASET_LOAD_ERROR_MESSAGE
 
 

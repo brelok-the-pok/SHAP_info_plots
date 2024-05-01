@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from PyQt5 import QtGui, QtWidgets, QtCore
 from app.constants import STYLESHEET, QT_COLOR_BEIGE, QT_COLOR_WHITE
+
 import tempfile
 import matplotlib.pyplot as plt
 
