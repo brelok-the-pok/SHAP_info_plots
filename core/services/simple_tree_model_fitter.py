@@ -22,19 +22,22 @@ class SimpleTreeModelFitter:
         return clf
 
     def get_y_proba_for_tree(self) -> list[float]:
-        X = self.get_X()
+        X = self._get_X()
 
         return self.model.predict_proba(X)[:, 1]
 
-    def get_X(self):
+    def _get_X(self):
         return self.dataset.drop("survived", axis=1)
 
-    def get_y(self):
+    def _get_y(self):
         return self.dataset["survived"]
 
     def fit_decision_tree(self, y) -> DecisionTreeRegressor:
         clf = DecisionTreeRegressor(max_depth=self.depth)
-        X = self.get_X()
+        X = self._get_X()
         clf = clf.fit(X, y)
 
         return clf
+
+    def get_columns(self) -> list[str]:
+        return list(self._get_X().columns)

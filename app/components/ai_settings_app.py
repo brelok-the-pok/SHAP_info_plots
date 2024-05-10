@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 
 class AISettingDialog(QMainWindow):
-    def setupUi(self, Dialog, callback_function):
+    def setupUi(self, Dialog, columns, category_columns, callback_function):
         self.callback_function = callback_function
         self.dialog = Dialog
         Dialog.setObjectName("Dialog")
@@ -28,12 +28,15 @@ class AISettingDialog(QMainWindow):
         self.labelTop.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.labelTop.setWordWrap(True)
         self.labelTop.setObjectName("labelTop")
+
+        self.checkBoxType = QtWidgets.QCheckBox(Dialog)
+        self.checkBoxType.setObjectName("checkBoxType")
+
         self.verticalLayout_2.addWidget(self.labelTop)
+        self.verticalLayout_2.addWidget(self.checkBoxType)
+
         self.comboBoxVar1 = QtWidgets.QComboBox(Dialog)
         self.comboBoxVar1.setObjectName("comboBoxVar1")
-        self.comboBoxVar1.addItem("")
-        self.comboBoxVar1.addItem("")
-        self.comboBoxVar1.addItem("")
         self.verticalLayout_2.addWidget(self.comboBoxVar1)
         self.checkBoxCategorical = QtWidgets.QCheckBox(Dialog)
         sizePolicy = QtWidgets.QSizePolicy(
@@ -44,6 +47,7 @@ class AISettingDialog(QMainWindow):
         sizePolicy.setHeightForWidth(
             self.checkBoxCategorical.sizePolicy().hasHeightForWidth()
         )
+        sizePolicy.setHeightForWidth(self.checkBoxType.sizePolicy().hasHeightForWidth())
         self.checkBoxCategorical.setSizePolicy(sizePolicy)
         self.checkBoxCategorical.setObjectName("checkBoxCategorical")
         self.verticalLayout_2.addWidget(self.checkBoxCategorical)
@@ -92,18 +96,43 @@ class AISettingDialog(QMainWindow):
         self.horizontalLayout.setStretch(1, 1)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
+        self.checkBoxType.toggled["bool"].connect(self.checkBoxCategorical.setEnabled)  # type: ignore
+        self.checkBoxType.toggled["bool"].connect(self.comboBoxVar1.setEnabled)  # type: ignore
+        self.comboBoxVar1.setDisabled(True)
+        self.checkBoxCategorical.setDisabled(True)
+
         self.pushButtonAcceptPlot.clicked.connect(self.send_settings)
         self.pushButtonCancelPlot.clicked.connect(self.dialog.close)
+
+        self.comboBoxVar1.clear()
+        self.comboBoxVar1.addItems(columns)
+
+        self.comboBoxCategoricalVar.clear()
+        self.comboBoxCategoricalVar.addItems(category_columns)
 
         self.retranslateUi(Dialog)
         self.checkBoxCategorical.toggled["bool"].connect(self.comboBoxCategoricalVar.setEnabled)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
+    def on_type_state_changed(self):
+        self.checkBoxCategorical.setDisabled(True)
+
     def send_settings(self):
         temperature = self.horizontalSlider.value() / 100
         depth = self.depth_spin_box.value()
         self.dialog.hide()
-        self.callback_function(temperature, depth)
+
+        category_feature_name = None
+        if self.checkBoxCategorical.isChecked():
+            category_feature_name = self.comboBoxCategoricalVar.currentText()
+
+        self.callback_function(
+            temperature,
+            depth,
+            self.checkBoxType.isChecked(),
+            self.comboBoxVar1.currentText(),
+            category_feature_name,
+        )
         self.dialog.close()
 
     def retranslateUi(self, Dialog):
@@ -115,13 +144,10 @@ class AISettingDialog(QMainWindow):
                 "Выберите по какой переменной строить график, границы изучения и числа отслеживаемых переменных",
             )
         )
-        self.comboBoxVar1.setItemText(0, _translate("Dialog", "Переменная 1"))
-        self.comboBoxVar1.setItemText(1, _translate("Dialog", "Переменная 2"))
-        self.comboBoxVar1.setItemText(2, _translate("Dialog", "Переменная 3"))
+
         self.checkBoxCategorical.setText(_translate("Dialog", "По категориям"))
-        self.comboBoxCategoricalVar.setItemText(0, _translate("Dialog", "Переменная 1"))
-        self.comboBoxCategoricalVar.setItemText(1, _translate("Dialog", "Переменная 2"))
-        self.comboBoxCategoricalVar.setItemText(2, _translate("Dialog", "Переменная 3"))
+        self.checkBoxType.setText(_translate("Dialog", "Дерево важности"))
+
         self.labelMinValue.setText(
             _translate("Dialog", "Темперетура (Больше - креативнее)")
         )

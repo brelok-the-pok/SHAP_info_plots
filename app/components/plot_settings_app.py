@@ -90,10 +90,10 @@ class PlotDataDialog(QMainWindow):
         self.verticalLayout.addLayout(self.horizontalLayout)
 
         self.comboBoxVar1.clear()
-        self.comboBoxVar1.addItems(columns[0 : len(columns) - 1])
+        self.comboBoxVar1.addItems(columns)
 
         self.comboBoxCategoricalVar.clear()
-        self.comboBoxCategoricalVar.addItems(categorical[0 : len(categorical) - 1])
+        self.comboBoxCategoricalVar.addItems(categorical)
 
         self.comboBoxVar1.currentIndexChanged.connect(self.change_boundaries)
 

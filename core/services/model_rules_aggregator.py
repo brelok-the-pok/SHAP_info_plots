@@ -4,15 +4,23 @@ from sklearn.tree import DecisionTreeRegressor, _tree
 
 
 class ModelRulesAggregator:
-    def __init__(self, tree: DecisionTreeRegressor, columns):
+    def __init__(
+        self,
+        tree: DecisionTreeRegressor,
+        columns: list[str],
+        res_name: str = "Вероятность",
+        res_factor=100,
+    ):
         self.tree = tree
         self.columns = columns
+        self.res_name = res_name
+        self.res_factor = res_factor
 
     def get_formatted_rules(self) -> str:
         rules = self._get_rules()
         return self._format_rules(rules)
 
-    def _get_rules(self, res_name="Вероятность"):
+    def _get_rules(self):
         tree_ = self.tree.tree_
 
         feature_name = []
@@ -49,8 +57,14 @@ class ModelRulesAggregator:
                 if rule != "Если ":
                     rule += " И "
                 rule += f"{p}"
-            val = int(np.round(path[-1][0][0][0] * 100, 0))
-            rule = f"{res_name}={val} ({rule})"
+
+            original_value = path[-1][0][0][0]
+            if self.res_factor == 100:
+                val = int(np.round(original_value * self.res_factor, 0))
+            else:
+                val = np.round(original_value, 2)
+
+            rule = f"{self.res_name}={val} ({rule})"
 
             rules[rule] = val
 

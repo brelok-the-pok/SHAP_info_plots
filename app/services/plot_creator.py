@@ -18,6 +18,7 @@ from app.constants import (
     ICE_PREDICTIONS_TITLE,
     ICE_IMPORTANCE_TITLE,
     ICE_IMPORTANCE_Y_LABEL,
+    BASE_IMPORTANCE_TITLE
 )
 
 
@@ -67,7 +68,8 @@ class PlotCreator:
     def __make_plots_for_dataset(self, dataset: DataFrame, fig_name: str) -> list[str]:
         self.__explainer.calculate_for_dataset(dataset, self.__column)
 
-        fig_lt = self.__get_top5_centered_importance_plot(False)
+        # fig_lt = self.__get_top5_centered_importance_plot(False)
+        fig_lt = self.__get_feature_importance_plot()
         self.__set_fig_settings(fig_lt)
         lt_path = self.__save_fig(fig_lt, f"lt-{fig_name}")
 
@@ -135,6 +137,13 @@ class PlotCreator:
 
         return plot.get_figure()
 
+    def __get_feature_importance_plot(self):
+        title = BASE_IMPORTANCE_TITLE.format(self.__column)
+        y_label = ICE_IMPORTANCE_Y_LABEL.format(self.__column)
+        result = self.__explainer.get_base_feature_importance()
+
+        return self.__plot_base_feature_plot(result, title, y_label)
+
     def __get_empty_plot(self, title: str):
         plt.figure(FIG_COUNT, figsize=FIG_SIZE, dpi=DPI)
         plt.clf()
@@ -171,6 +180,24 @@ class PlotCreator:
             plot.plot(df.columns, df.loc[i], color="black", linewidth=0.1)
 
         plot.plot(df.columns, df.mean(), color="lime", linewidth=6)
+
+        self.__set_plot_settings(plot, self.__column, y_label)
+
+        return plot.get_figure()
+
+    def __plot_base_feature_plot(self, result: list[dict], title: str, y_label: str):
+        plot = self.__get_empty_plot(title)
+
+        for data in result:
+            if isinstance(data['width'], float):
+                color = "black"
+                marker = '.'
+                plot.scatter(data['X'], data['y'], color=color, s=data['width'] * 10, marker=marker)
+            else:
+                color = 'green'
+                marker = '^'
+                for x, y, width in zip(data['X'], data['y'], data['width']):
+                    plot.scatter(x, y, color=color, s=width * 100, marker=marker)
 
         self.__set_plot_settings(plot, self.__column, y_label)
 

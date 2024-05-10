@@ -10,7 +10,11 @@ from app.constants import (
     NO_PLOTS_MESSAGE,
     FIG_WIDTH,
     FIG_HEIGHT,
-    LLM_SYSTEM_PROMPT_FOR_USER,
+    LLM_SYSTEM_PROMPT_FOR_USER_PREDICT,
+    LLM_SYSTEM_PROMPT_FOR_USER_IMPORTANCE,
+    LLM_SYSTEM_PROMPT_FOR_PREDICT,
+    LLM_SYSTEM_PROMPT_FOR_IMPORTANCE,
+    TREE_IMAGE_PATH,
 )
 from core.schemes import PlotSettings
 from core.debug_starter import DebugStarter
@@ -19,17 +23,20 @@ from core.services.data_helper import DataHelper
 from pandas import DataFrame
 from xgboost import XGBClassifier
 from core.services.pickle_service import PickleService
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic, QtGui
 from core.schemes.pickled_data import DatasetModelMonoObject
 from app.services.qt_helper import QtHelper
 from app.components.plot_settings_app import PlotDataDialog
 from app.components.ai_settings_app import AISettingDialog
+from app.components.tree_container import TreeContainer
 from app.components.plot_container import PlotContainer
 from app.services.dataset_renderer import DatasetRendered
 from app.services.plot_creator import PlotCreator
 from core.services.llm_controller import LLMController
 from core.services.simple_tree_model_fitter import SimpleTreeModelFitter
+from core.services.shap_tree_model_fitter import ShapTreeModelFitter
 from core.services.model_rules_aggregator import ModelRulesAggregator
+from core.services.tree_model_figure_builder import TreeModelFigureBuilder
 from app.components.text_chat_scroll_widget import TextChatScrollArea
 
 
@@ -56,22 +63,22 @@ class MainApp(QtWidgets.QMainWindow):
         self.load_dataset_action.triggered.connect(self.open_dataset)
 
         self.save_plot_action.triggered.connect(self.save_plots)
+        self.show_tree_figure_action.triggered.connect(self.show_tree_figure)
 
         self.push_button_plot.clicked.connect(self.make_plots)
 
         self.user_input_button.clicked.connect(self.send_chat_request)
         self.llm_init_button.clicked.connect(self.init_llm_button)
 
-        self._widget = QtWidgets.QWidget()
-        self._layout = self.horizontalLayout_8
-        self._scroll = TextChatScrollArea()
-        self._layout.addWidget(self._scroll)
+        self.init_scroll()
 
         self._widget.setLayout(self._layout)
 
         self.plots_combo_box.currentIndexChanged.connect(self.switch_plots)
 
         self.statusBar().showMessage("Ожидается загрузка модели и датасета")
+
+        self.default_tree_image_path = TREE_IMAGE_PATH
 
         self.is_model_loaded = False
         self.is_dataset_loaded = False
@@ -90,6 +97,10 @@ class MainApp(QtWidgets.QMainWindow):
     @property
     def dataset(self) -> DataFrame:
         return self.__dataset
+
+    @property
+    def clean_dataset(self) -> DataFrame:
+        return self.__dataset.drop("survived", axis=1)
 
     @dataset.setter
     def dataset(self, dataset) -> None:
@@ -206,11 +217,11 @@ class MainApp(QtWidgets.QMainWindow):
 
         dialog = QtWidgets.QDialog()
         self.ui = PlotDataDialog()
-        min_max = self.__data_helper.get_dataset_min_max(self.__dataset)
-        category_columns = self.__data_helper.find_category_columns(self.dataset)
+        min_max = self.__data_helper.get_dataset_min_max(self.clean_dataset)
+        category_columns = self.__data_helper.find_category_columns(self.clean_dataset)
         self.ui.setupUi(
             dialog,
-            list(self.dataset.columns),
+            list(self.clean_dataset.columns),
             category_columns,
             min_max,
             self.retrieve_data_from_child,
@@ -300,20 +311,92 @@ class MainApp(QtWidgets.QMainWindow):
 
         dialog = QtWidgets.QDialog()
         self.ui = AISettingDialog()
-        self.ui.setupUi(dialog, self._init_llm_button_callback)
+
+        columns = self.clean_dataset.columns
+        category_columns = self.__data_helper.find_category_columns(self.clean_dataset)
+
+        self.ui.setupUi(
+            dialog, columns, category_columns, self._init_llm_button_callback
+        )
         dialog.show()
 
-    def _init_llm_button_callback(self, temperature, depth):
-        fitter = SimpleTreeModelFitter(self.model, self.dataset, depth)
-        tree = fitter.get_simple_tree()
-        columns = fitter.get_X().columns
+    def show_tree_figure(self):
+        TreeContainer(self.paths).exec_()
 
-        aggregator = ModelRulesAggregator(tree, columns)
-        rules = aggregator.get_formatted_rules()
+    def _init_llm_button_callback(
+        self,
+        temperature,
+        depth,
+        importance_tree,
+        feature_name="age",
+        category_feature_name=None,
+    ):
+        if importance_tree:
+            fitter = ShapTreeModelFitter(self.model, self.dataset, depth, feature_name)
+        else:
+            fitter = SimpleTreeModelFitter(self.model, self.dataset, depth)
 
-        self.llm_controller = LLMController(temperature)
-        self.proba_text.setText(rules)
-        self._scroll.add_text(LLM_SYSTEM_PROMPT_FOR_USER)
+        if category_feature_name:
+            trees = fitter.get_category_tree(category_feature_name)
+        else:
+            trees = [fitter.get_simple_tree()]
 
-        response = self.llm_controller.get_answer(rules)
-        self._scroll.add_text(response)
+        columns = fitter.get_columns()
+
+        paths = {}
+
+        for index, tree in enumerate(trees):
+            builder = TreeModelFigureBuilder(tree, columns, feature_name)
+            plot = builder.get_model_figure()
+
+            path_name = f"{feature_name}" if importance_tree else "Prediction"
+
+            if category_feature_name:
+                path_name += f" - {category_feature_name}_{index}"
+
+            path = self.default_tree_image_path.format(index)
+            paths[path_name] = path
+            plot.savefig(path, bbox_inches="tight")
+
+        self.paths = paths
+        # self.show_tree_figure()
+
+        res_name = "Важность" if importance_tree else "Вероятность"
+        res_factor = 1 if importance_tree else 100
+
+        self.init_scroll()
+        for index, tree in enumerate(trees, start=1):
+            aggregator = ModelRulesAggregator(tree, columns, res_name, res_factor)
+            rules = aggregator.get_formatted_rules()
+
+            prompt = (
+                LLM_SYSTEM_PROMPT_FOR_IMPORTANCE
+                if importance_tree
+                else LLM_SYSTEM_PROMPT_FOR_PREDICT
+            )
+
+            self.llm_controller = LLMController(temperature, system_prompt=prompt)
+            text_field = getattr(self, f"proba_text_{index}")
+            if category_feature_name:
+                rules = f"При значении {category_feature_name} == {index}\n{rules}"
+
+            text_field.setText(rules)
+
+            if importance_tree:
+                self._scroll.add_text(LLM_SYSTEM_PROMPT_FOR_USER_IMPORTANCE)
+            else:
+                self._scroll.add_text(LLM_SYSTEM_PROMPT_FOR_USER_PREDICT)
+
+            response = self.llm_controller.get_answer(rules)
+
+            self._scroll.add_text(response)
+
+    def init_scroll(self):
+        if hasattr(self, "_layout"):
+            self._layout.removeWidget(self._scroll)
+
+        self._widget = QtWidgets.QWidget()
+        self._layout = self.verticalLayout_2
+        self._scroll = TextChatScrollArea()
+        self._layout.addWidget(self._scroll)
+        self._layout.addWidget(self._scroll)

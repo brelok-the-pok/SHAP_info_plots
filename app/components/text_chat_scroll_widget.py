@@ -1,8 +1,5 @@
 from PyQt5.QtGui import QFontMetrics
-from app.constants import (
-    CHAT_USER_STYLESHEET,
-    CHAT_LLM_STYLESHEET
-)
+from app.constants import CHAT_USER_STYLESHEET, CHAT_LLM_STYLESHEET
 from PyQt5 import QtCore, QtWidgets
 
 
@@ -14,12 +11,13 @@ class TextChatScrollArea(QtWidgets.QScrollArea):
         self._layout = QtWidgets.QVBoxLayout()
         self.setWidgetResizable(True)
 
+        self._widgets = []
+
     def add_text(self, text):
         text_widget = QtWidgets.QLabel(self)
         flags = QtCore.Qt.TextInteractionFlags(
             QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
-            |
-            QtCore.Qt.TextInteractionFlag.TextSelectableByKeyboard
+            | QtCore.Qt.TextInteractionFlag.TextSelectableByKeyboard
         )
         text_widget.setTextInteractionFlags(flags)
 
@@ -36,7 +34,6 @@ class TextChatScrollArea(QtWidgets.QScrollArea):
         text_widget.setText(text)
         text_widget.setStyleSheet(style)
 
-
         fontMetrics = QFontMetrics(text_widget.font())
         textSize = fontMetrics.size(0, text)
         text_widget.setFixedHeight(textSize.height() + 10)
@@ -44,3 +41,4 @@ class TextChatScrollArea(QtWidgets.QScrollArea):
         self._layout.addWidget(text_widget)
         self._widget.setLayout(self._layout)
         self.setWidget(self._widget)
+        self._widgets.append(text_widget)

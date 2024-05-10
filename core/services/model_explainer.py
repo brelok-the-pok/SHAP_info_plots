@@ -1,6 +1,9 @@
 from xgboost import XGBClassifier
 import shap
 from pandas import DataFrame, Series
+from collections import defaultdict
+from math import log
+
 import numpy as np
 
 from core.schemes.model_explainer import MostImportantColumns
@@ -11,6 +14,7 @@ class ModelExplainer:
         self._model = model
         self._explainer = shap.TreeExplainer(model)
         self._most_important_columns = []
+        self._base_importance = []
         self._importance = {}
         self._predicts = {}
 
@@ -20,12 +24,38 @@ class ModelExplainer:
     def get_centered_importance(self):
         return self._importance
 
+    def get_base_feature_importance(self):
+        column_index = list(self._dataset_columns).index(self._column_to_vary)
+        X = self._dataset[self._column_to_vary]
+        y = self._base_importance[:, column_index]
+        sorted_data = list(sorted(zip(X, y), key=lambda x: x[0]))
+
+        base_X = [x[0] for x in sorted_data]
+        base_y = [x[1] for x in sorted_data]
+
+        result = defaultdict(lambda: {"count": 0, "imp": 0})
+        for x_value, y_value in sorted_data:
+            result[x_value]["imp"] += y_value
+            result[x_value]["count"] += 1
+        result = {key: value for key, value in result.items() if value["count"] > 1}
+
+        aggregated_X = list(result.keys())
+        aggregated_y = [x["imp"] / x["count"] for x in result.values()]
+        aggregated_width = [0.1 + log(x["count"], 10) for x in result.values()]
+
+        result = [
+            {"X": base_X, "y": base_y, "width": 0.4},
+            {"X": aggregated_X, "y": aggregated_y, "width": aggregated_width},
+        ]
+
+        return result
+
     def get_ice_importance(self):
-        column_index = list(self._dataset.columns).index(self._column_to_vary)
+        column_index = list(self._dataset_columns).index(self._column_to_vary)
 
         return {
             key: shap_values[:, column_index]
-            for key, shap_values in self._importance.items()
+            for key, shap_values in self.get_centered_importance().items()
         }
 
     def get_ice_predictions(self):
@@ -33,6 +63,7 @@ class ModelExplainer:
 
     def calculate_for_dataset(self, dataset: DataFrame, column_to_vary: str) -> None:
         self._dataset = dataset
+        self._dataset_columns = dataset.drop("survived", axis=1).columns
         self._column_to_vary = column_to_vary
 
         self._calculate_most_important_columns()
@@ -47,7 +78,7 @@ class ModelExplainer:
         for importance in sorted(mean_importance, reverse=True):
             index = mean_importance.index(importance)
             columns.append(
-                MostImportantColumns(index=index, name=self._dataset.columns[index])
+                MostImportantColumns(index=index, name=self._dataset_columns[index])
             )
 
         self._most_important_columns = columns
@@ -58,6 +89,7 @@ class ModelExplainer:
 
         importance = {}
         predicts = {}
+        self._base_importance = self._get_shap_values(dataset_copy)
 
         dataset_len = dataset_copy[column_to_vary].count()
 

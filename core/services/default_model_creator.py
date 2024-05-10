@@ -26,12 +26,7 @@ class DefaultModelType(Enum):
         {
             "n_estimators": 100,
             "random_state": 42,
-            "criterion": "gini",
             "max_depth": None,
-            "min_samples_split": 2,
-            "min_samples_leaf": 1,
-            "min_weight_fraction_leaf": 0.0,
-            "max_features": "sqrt",
         },
     )
     MLP = (

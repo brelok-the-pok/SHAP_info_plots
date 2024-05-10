@@ -31,7 +31,7 @@ class DatasetRendered:
                 cur_color = QT_COLOR_BEIGE
 
             for j in range(0, self.__dataset.shape[1]):
-                item = QtWidgets.QTableWidgetItem(f"{self.__dataset.loc[i][j]}")
+                item = QtWidgets.QTableWidgetItem(f"{self.__dataset.iloc[i, j]}")
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
                 table_widget.setItem(i, j, item)
                 table_widget.item(i, j).setBackground(cur_color)
@@ -86,7 +86,7 @@ class DatasetRendered:
             hbox.addWidget(label)
             hbox.addLayout(vbox)
 
-            hbox.setContentsMargins(0, 12, 0, 0)
+            hbox.setContentsMargins(0, 20, 0, 0)
             hbox.setStretch(0, 4)
             hbox.setStretch(1, 1)
             sub_group_box.setLayout(hbox)

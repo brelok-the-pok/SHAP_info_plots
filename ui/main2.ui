@@ -128,7 +128,7 @@
              </size>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tabCollumns">
              <property name="sizePolicy">
@@ -156,15 +156,9 @@
        <attribute name="title">
         <string>Анализа с помощью ИИ</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QLabel" name="label_5">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -181,32 +175,83 @@
            <string>Правила полученные из модели
 </string>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTextBrowser" name="proba_text">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>4</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>97</height>
-           </size>
+          <property name="alignment">
+           <set>Qt::AlignHCenter|Qt::AlignTop</set>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_8"/>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QTextBrowser" name="proba_text_1">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>500</width>
+              <height>12</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>115</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextBrowser" name="proba_text_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>500</width>
+              <height>12</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>115</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextBrowser" name="proba_text_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>500</width>
+              <height>12</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>115</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -301,6 +346,7 @@
     </property>
     <addaction name="save_plot_action"/>
     <addaction name="separator"/>
+    <addaction name="show_tree_figure_action"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -329,6 +375,11 @@
   <action name="save_plot_action">
    <property name="text">
     <string>Сохранить как</string>
+   </property>
+  </action>
+  <action name="show_tree_figure_action">
+   <property name="text">
+    <string>Показать дерево решений</string>
    </property>
   </action>
  </widget>
