@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1056</width>
-    <height>718</height>
+    <width>1310</width>
+    <height>964</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget_2">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -116,19 +116,19 @@
           <item>
            <widget class="QTabWidget" name="tabWidget">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>194</width>
+              <width>248</width>
               <height>0</height>
              </size>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tabCollumns">
              <property name="sizePolicy">
@@ -192,7 +192,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>500</width>
+              <width>300</width>
               <height>12</height>
              </size>
             </property>
@@ -214,7 +214,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>500</width>
+              <width>300</width>
               <height>12</height>
              </size>
             </property>
@@ -236,7 +236,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>500</width>
+              <width>300</width>
               <height>12</height>
              </size>
             </property>
@@ -274,6 +274,9 @@
               <width>16777215</width>
               <height>80</height>
              </size>
+            </property>
+            <property name="plainText">
+             <string>Объясни переменную номер 1</string>
             </property>
            </widget>
           </item>
@@ -326,7 +329,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1056</width>
+     <width>1310</width>
      <height>21</height>
     </rect>
    </property>

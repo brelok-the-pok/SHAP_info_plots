@@ -87,8 +87,8 @@ class DatasetRendered:
             hbox.addLayout(vbox)
 
             hbox.setContentsMargins(0, 20, 0, 0)
-            hbox.setStretch(0, 4)
-            hbox.setStretch(1, 1)
+            hbox.setStretch(0, 0)
+            hbox.setStretch(0, 0)
             sub_group_box.setLayout(hbox)
             sub_group_box.setTitle(self.__dataset.columns[i])
             vertical_layout.addWidget(sub_group_box)

@@ -78,10 +78,10 @@ class ModelRulesAggregator:
         rules = [f"{i}. {x}" for i, x in enumerate(rules, start=1)]
         formatted_rules = ";\n".join(rules) + ";"
         replace_rules = {
-            "sex > 0.5": "sex = M",
-            "sex <= 0.5": "sex = F",
-            "class > 2.5": "class = High",
-            "class <= 2.5": "class = Low",
+            # "sex > 0.5": "sex = M",
+            # "sex <= 0.5": "sex = F",
+            # "class > 2.5": "class = High",
+            # "class <= 2.5": "class = Low",
             "Вероятность_0": "Вероятность",
             "Вероятность_1": "Вероятность",
             "Вероятность_2": "Вероятность",

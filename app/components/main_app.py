@@ -38,6 +38,7 @@ from core.services.shap_tree_model_fitter import ShapTreeModelFitter
 from core.services.model_rules_aggregator import ModelRulesAggregator
 from core.services.tree_model_figure_builder import TreeModelFigureBuilder
 from app.components.text_chat_scroll_widget import TextChatScrollArea
+from core.services.text_keyword_parser import TextKeywordParser
 
 
 class MainApp(QtWidgets.QMainWindow):
@@ -91,7 +92,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.temp_dir = tempfile.TemporaryDirectory()
 
         self.setWindowState(QtCore.Qt.WindowMaximized)
-        self.debug_start()
+        # self.debug_start()
         self.show()
 
     @property
@@ -129,6 +130,7 @@ class MainApp(QtWidgets.QMainWindow):
         dataset, model = debug_starter.get_dataset_and_model()
         self.dataset = dataset
         self.model = model
+        print('a')
 
     def show_data_status(self) -> None:
         if self.is_dataset_loaded and self.is_model_loaded:
@@ -297,9 +299,15 @@ class MainApp(QtWidgets.QMainWindow):
     def send_chat_request(self):
         text = self.user_input_widget.document().toPlainText()
         if text:
+            text_for_llm = TextKeywordParser(
+                {"dataset": self.clean_dataset}
+            ).fill_text_with_additional_info(text)
+
             self._scroll.add_text(text)
 
-            response = self.llm_controller.get_answer(text)
+            response = self.llm_controller.get_answer(
+                text_for_llm, text_for_llm == text
+            )
             self._scroll.add_text(response)
 
             scroll_bar = self._scroll.verticalScrollBar()

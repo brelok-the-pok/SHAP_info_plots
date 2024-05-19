@@ -181,6 +181,9 @@ class PlotCreator:
 
         plot.plot(df.columns, df.mean(), color="lime", linewidth=6)
 
+        # ax = plt.gca()
+        # ax.set_ylim([-3.5, 10])
+
         self.__set_plot_settings(plot, self.__column, y_label)
 
         return plot.get_figure()

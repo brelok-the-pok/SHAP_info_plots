@@ -31,8 +31,9 @@ class LLMController:
         response = requests.post(TOKEN_URL, data=data, headers=headers)
         return response.json()["iamToken"]
 
-    def get_answer(self, user_message) -> str:
-        self.messages += [{"role": "user", "text": user_message}]
+    def get_answer(self, user_message, should_use_context=True) -> str:
+        new_message = [{"role": "user", "text": user_message}]
+        self.messages += new_message
         body = {
             "modelUri": f"gpt://{LLM_FOLDER}/yandexgpt/latest",
             "completionOptions": {
@@ -40,7 +41,7 @@ class LLMController:
                 "temperature": self.temperature,
                 "maxTokens": self.max_tokens,
             },
-            "messages": self.messages,
+            "messages": self.messages if should_use_context else new_message,
         }
 
         response = requests.post(

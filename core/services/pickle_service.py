@@ -32,7 +32,7 @@ class PickleService:
         return obj  # type: ignore
 
     def get_dataset_and_model(self, path: str) -> DatasetModelMonoObject:
-        obj: XGBClassifier = self.__reader.read_pickled(path)
+        obj: tuple[XGBClassifier, DataFrame] = self.__reader.read_pickled(path)
 
         if not self.__dataset_validator.is_valid(obj[1]):
             raise Exception(DATASET_LOAD_ERROR_MESSAGE)

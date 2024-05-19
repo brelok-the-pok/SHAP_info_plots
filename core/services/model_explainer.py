@@ -17,6 +17,7 @@ class ModelExplainer:
         self._base_importance = []
         self._importance = {}
         self._predicts = {}
+        self._boundaries = {}
 
     def get_n_most_important_columns(self, n: int) -> list[MostImportantColumns]:
         return self._most_important_columns[:n]
